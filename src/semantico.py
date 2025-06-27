@@ -3,7 +3,9 @@ import os
 import json
 
 global lista_erros
+global variables
 
+variables = []
 tabela_de_simbolos = {}
 pilha_escopos = []
 
@@ -188,8 +190,10 @@ def parse_escopoMain2(tokens, current_index):
 
 # <codigo>
 def parse_codigo(tokens, current_index):
+    global variables
     if match_token(tokens, current_index, 'PRE', 'variables'):
-        current_index = parse_defVar(tokens, current_index)
+        current_index, identificadores = parse_defVar(tokens, current_index)
+        variables = identificadores
         return parse_codigo(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'print'):
         current_index = parse_comandoPrint(tokens, current_index)
@@ -571,37 +575,47 @@ def parse_conteudoPrint(tokens, current_index):
     return parse_valor(tokens, current_index)       
     
 def parse_defComeco(tokens, current_index):
+    identificadores = []
     if match_token(tokens, current_index, 'PRE', 'const'):
-        
-        if current_token(tokens, current_index)[2] not in tabela_de_simbolos[pilha_escopos[-1]]:
+        nome = current_token(tokens, current_index)[2]
+        linha = current_token(tokens, current_index)[0]
+
+        current_index, identificadores = parse_defConst(tokens, current_index)
+        if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
-                nome = current_token(tokens, current_index)[2],
+                nome = nome,
                 categoria = "const",
                 tipo = None,
-                linha = current_token(tokens, current_index)[0],
+                linha = linha,
                 parametros = [],
                 tipo_retorno = None,
                 funcoes = [],
-                identificadores = []
+                identificadores = identificadores
             )
-
-        current_index = parse_defConst(tokens, current_index)
+        else:
+            for item in identificadores:
+                tabela_de_simbolos['global']['const']['identificadores'].append(item)
+        
         current_index = parse_defComeco(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'variables'):
+        nome = current_token(tokens, current_index)[2]
+        linha = current_token(tokens, current_index)[0]
 
-        if current_token(tokens, current_index)[2] not in tabela_de_simbolos[pilha_escopos[-1]]:
+        current_index, identificadores = parse_defVar(tokens, current_index)
+        if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
-                nome = current_token(tokens, current_index)[2],
+                nome = nome,
                 categoria = "variables",
                 tipo = None,
-                linha = current_token(tokens, current_index)[0],
+                linha = linha,
                 parametros = [],
                 tipo_retorno = None,
                 funcoes = [],
-                identificadores = []
+                identificadores = identificadores
             )
-
-        current_index = parse_defVar(tokens, current_index)
+        else:
+            for item in identificadores:
+                tabela_de_simbolos[pilha_escopos[-1]]['variables']['identificadores'].append(item)
         current_index = parse_defComeco(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'methods'):
         nome = current_token(tokens, current_index)[2]
@@ -631,20 +645,25 @@ def parse_defComeco(tokens, current_index):
 
 def parse_defComeco2(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'variables'):
+        nome = current_token(tokens, current_index)[2]
+        linha = current_token(tokens, current_index)[0]
 
-        if current_token(tokens, current_index)[2] not in tabela_de_simbolos[pilha_escopos[-1]]:
+        current_index, identificadores = parse_defVar(tokens, current_index)
+        if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
-                nome = current_token(tokens, current_index)[2],
+                nome = nome,
                 categoria = "variables",
                 tipo = None,
-                linha = current_token(tokens, current_index)[0],
+                linha = linha,
                 parametros = [],
                 tipo_retorno = None,
                 funcoes = [],
-                identificadores = []
+                identificadores = identificadores
             )
-
-        current_index = parse_defVar(tokens, current_index)
+        else:
+            for item in identificadores:
+                tabela_de_simbolos[pilha_escopos[-1]]['variables']['identificadores'].append(item)
+            
         current_index = parse_defComeco2(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'methods'):
         nome = current_token(tokens, current_index)[2]
@@ -683,6 +702,7 @@ def parse_methods(tokens, current_index):
 
 # <listaMetodos>
 def parse_listaMetodos(tokens, current_index):
+    global variables
     funcoes = []
     while current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean", "void"]:  # tipo
         tipo = current_token(tokens, current_index)[2]
@@ -709,7 +729,7 @@ def parse_listaMetodos(tokens, current_index):
                                 'parametros' : lista,
                                 'tipo_retorno' : tipo,
                                 'funcoes': [],
-                                'identificadores': []
+                                'variables': variables
                                 }
                             }
                             
@@ -747,10 +767,10 @@ def parse_defConst(tokens, current_index):
 
     if match_token(tokens, current_index, 'DEL', '{'):
         current_index = consume_token(tokens, current_index)
-        current_index = parse_listaConst(tokens, current_index)
+        current_index, identificadores = parse_listaConst(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '}'):
             current_index = consume_token(tokens, current_index)
-    return current_index
+    return current_index, identificadores
 
 def parse_defVar(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'variables'):
@@ -758,39 +778,74 @@ def parse_defVar(tokens, current_index):
     
     if match_token(tokens, current_index, 'DEL', '{'):
         current_index = consume_token(tokens, current_index)
-        current_index = parse_listaConst(tokens, current_index)
+        current_index, identificadores = parse_listaConst(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '}'):
             current_index = consume_token(tokens, current_index)
         
-    return current_index
+    return current_index, identificadores
 
 # <listaConst>
 def parse_listaConst(tokens, current_index):
-    if current_token(tokens, current_index)[2] in ["int", "float", "string", "boolean"] and match_token(tokens, current_index + 1, "IDE") and match_token(tokens, current_index + 2, "DEL", "["):
-        current_index = parse_declVetor(tokens, current_index)
-        current_index = parse_listaConst(tokens, current_index)
-    elif current_token(tokens, current_index)[2] in ["int", "float", "string", "boolean"]:
-        current_index = consume_token(tokens, current_index)
-        current_index = parse_listaItens(tokens, current_index)
-        if match_token(tokens, current_index, 'DEL', ';'):
-            current_index = consume_token(tokens, current_index)
-            current_index = parse_listaConst(tokens, current_index)
-    elif match_token(tokens, current_index, 'IDE'):
-        current_index = consume_token(tokens, current_index)
-        current_index = parse_listaItens(tokens, current_index)
-        if match_token(tokens, current_index, 'DEL', ';'):
-            current_index = consume_token(tokens, current_index)
-            current_index = parse_listaConst(tokens, current_index)
-    return current_index
+    identificadores = []
 
-# <listaItens>
-def parse_listaItens(tokens, current_index):
-    if match_token(tokens, current_index, 'IDE'):
+    while True:
+
+        if match_token(tokens, current_index, "DEL", "}"):
+            break
+
+        if (
+            current_token(tokens, current_index)[2] in ["int", "float", "string", "boolean"]
+            and match_token(tokens, current_index + 1, "IDE")
+            and match_token(tokens, current_index + 2, "DEL", "[")
+        ):
+            current_index, vetor = parse_declVetor(tokens, current_index)
+            identificadores.extend(vetor)
+            continue
+
+        elif current_token(tokens, current_index)[2] in ["int", "float", "string", "boolean"]:
+            tipo = current_token(tokens, current_index)[2]
+            current_index = consume_token(tokens, current_index)
+            current_index, novos_ids = parse_listaItens(tokens, current_index, tipo)
+            identificadores.extend(novos_ids)
+
+            if match_token(tokens, current_index, 'DEL', ';'):
+                current_index = consume_token(tokens, current_index)
+            
+            continue
+
+        elif match_token(tokens, current_index, 'IDE'):
+            current_index = consume_token(tokens, current_index)
+            current_index, novos_ids = parse_listaItens(tokens, current_index, tipo)
+            identificadores.extend(novos_ids)
+
+            if match_token(tokens, current_index, 'DEL', ';'):
+                current_index = consume_token(tokens, current_index)
+            
+            continue
+
+        else:
+            break
+    
+    return current_index, identificadores
+
+def parse_listaItens(tokens, current_index, tipo):
+    identificadores = []
+
+    while match_token(tokens, current_index, 'IDE'):
+        nome = current_token(tokens, current_index)[2]
+        identificadores.append({nome: tipo})
+
         current_index = consume_token(tokens, current_index)
         current_index = parse_possFinal(tokens, current_index)
-        current_index = parse_listaItens2(tokens, current_index)
-    
-    return current_index
+
+        # Verifica se há outro identificador com vírgula
+        if match_token(tokens, current_index, 'DEL', ','):
+            current_index = consume_token(tokens, current_index)
+            continue
+        else:
+            break
+
+    return current_index, identificadores
 
 # <listaItens2>
 def parse_listaItens2(tokens, current_index):
@@ -830,9 +885,11 @@ def parse_valor(tokens, current_index):
     return current_index
 
 def parse_declVetor(tokens, current_index):
+    vetor = []
     if match_token(tokens, current_index, 'PRE'):  # tipo
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'IDE'):
+            vetor.append({current_token(tokens, current_index)[2]: 'vetor/matriz'})
             current_index = consume_token(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', '['):
                 current_index = consume_token(tokens, current_index)
@@ -851,7 +908,7 @@ def parse_declVetor(tokens, current_index):
                     if match_token(tokens, current_index, 'DEL', ';'):
                         current_index = consume_token(tokens, current_index)
                     
-    return current_index
+    return current_index, vetor
 
 # <declVetor2>
 def parse_declVetor2(tokens, current_index):

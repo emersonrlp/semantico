@@ -19,7 +19,23 @@ Tabela de Símbolos:
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [],
-            "identificadores": []
+            "identificadores": [
+                {
+                    "estante": "vetor/matriz"
+                },
+                {
+                    "a": "int"
+                },
+                {
+                    "b": "float"
+                },
+                {
+                    "c": "float"
+                },
+                {
+                    "vetor": "vetor/matriz"
+                }
+            ]
         },
         "variables": {
             "categoria": "variables",
@@ -28,7 +44,17 @@ Tabela de Símbolos:
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [],
-            "identificadores": []
+            "identificadores": [
+                {
+                    "armario": "vetor/matriz"
+                },
+                {
+                    "d": "string"
+                },
+                {
+                    "vetor": "vetor/matriz"
+                }
+            ]
         },
         "methods": {
             "categoria": "methods",
@@ -54,7 +80,7 @@ Tabela de Símbolos:
                         ],
                         "tipo_retorno": "float",
                         "funcoes": [],
-                        "identificadores": []
+                        "variables": []
                     }
                 },
                 {
@@ -74,7 +100,14 @@ Tabela de Símbolos:
                         ],
                         "tipo_retorno": "void",
                         "funcoes": [],
-                        "identificadores": []
+                        "variables": [
+                            {
+                                "c": "string"
+                            },
+                            {
+                                "sim": "boolean"
+                            }
+                        ]
                     }
                 },
                 {
@@ -94,7 +127,14 @@ Tabela de Símbolos:
                         ],
                         "tipo_retorno": "int",
                         "funcoes": [],
-                        "identificadores": []
+                        "variables": [
+                            {
+                                "c": "string"
+                            },
+                            {
+                                "sim": "boolean"
+                            }
+                        ]
                     }
                 }
             ],
@@ -135,7 +175,7 @@ Tabela de Símbolos:
                         ],
                         "tipo_retorno": "int",
                         "funcoes": [],
-                        "identificadores": []
+                        "variables": []
                     }
                 },
                 {
@@ -146,7 +186,7 @@ Tabela de Símbolos:
                         "parametros": [],
                         "tipo_retorno": "void",
                         "funcoes": [],
-                        "identificadores": []
+                        "variables": []
                     }
                 }
             ],
@@ -170,7 +210,20 @@ Tabela de Símbolos:
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [],
-            "identificadores": []
+            "identificadores": [
+                {
+                    "a": "int"
+                },
+                {
+                    "b": "float"
+                },
+                {
+                    "c": "float"
+                },
+                {
+                    "vetor": "vetor/matriz"
+                }
+            ]
         }
     }
 }
