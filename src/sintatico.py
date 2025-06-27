@@ -1,7 +1,45 @@
 from lexico import processar_arquivos
 import os
+import json
 
 global lista_erros
+
+tabela_de_simbolos = {}
+pilha_escopos = []
+
+def entrar_escopo(nome_escopo):
+    pilha_escopos.append(nome_escopo)
+    if nome_escopo not in tabela_de_simbolos:
+        tabela_de_simbolos[nome_escopo] = {}
+
+def sair_escopo():
+    try:
+        pilha_escopos.pop()
+    except:
+        pass
+
+def declarar_simbolo(nome, categoria, tipo, linha, parametros=None, tipo_retorno=None, funcoes=[]):
+    escopo_atual = pilha_escopos[-1]
+    tabela = tabela_de_simbolos[escopo_atual]
+
+    if nome in tabela:
+        raise f"Símbolo '{nome}' já declarado no escopo '{escopo_atual}' na linha {linha}"
+
+    tabela[nome] = {
+        "categoria": categoria,
+        "tipo": tipo,
+        "linha": linha,
+        "parametros": parametros,
+        "tipo_retorno": tipo_retorno,
+        "funcoes": funcoes
+    }
+
+def inicializar_analise():
+    global tabela_de_simbolos, pilha_escopos
+    tabela_de_simbolos.clear()
+    pilha_escopos.clear()
+    pilha_escopos.append("global")
+    tabela_de_simbolos["global"] = {}
 
 def consume_token(tokens, current_index):
     if current_index < len(tokens):
@@ -26,13 +64,34 @@ def parse_main(tokens, current_index):
     
     if match_token(tokens, current_index, "PRE", "main"):
         current_index = consume_token(tokens, current_index)
+
+        # 4. Entrar no escopo 'main'
+        entrar_escopo("global")
+
+        # 5. Registrar 'main' na tabela de símbolos como uma classe
+        declarar_simbolo(
+            nome = "main",
+            categoria = "classe",
+            tipo = None,
+            linha = current_token(tokens, current_index)[0],
+            parametros = None,
+            tipo_retorno = None,
+            funcoes = []
+        )
     
     if match_token(tokens, current_index, "DEL", "{"):
         current_index = consume_token(tokens, current_index)
         current_index = parse_escopoMain(tokens, current_index)
-    
+
     if match_token(tokens, current_index, "DEL", "}"):
         current_index = consume_token(tokens, current_index)
+
+    # 8. Sai do escopo 'main'
+    sair_escopo()
+    print(tabela_de_simbolos)
+    '''print(tabela_de_simbolos['global'])
+    print(tabela_de_simbolos['Orangotango'])
+    print(tabela_de_simbolos['Toin'])'''
 
     return current_index
 
@@ -43,12 +102,25 @@ def parse_escopoMain(tokens, current_index):
         if match_token(tokens, current_index, "IDE"):
             current_index = consume_token(tokens, current_index)
 
+            entrar_escopo(current_token(tokens, current_index - 1)[2])
+
+            declarar_simbolo(
+                nome = current_token(tokens, current_index - 1)[2],
+                categoria = "classe",
+                tipo = None,
+                linha = current_token(tokens, current_index)[0],
+                parametros = None,
+                tipo_retorno = None,
+                funcoes = []
+            )
+
         if match_token(tokens, current_index, "DEL", "{"):
             current_index = consume_token(tokens, current_index)
-            current_index = parse_defComeco2(tokens, current_index)
+            current_index = parse_defComeco2(tokens, current_index) #voltar aqui
 
         if match_token(tokens, current_index, "DEL", "}"):
             current_index = consume_token(tokens, current_index)
+            sair_escopo()
             current_index = parse_escopoMain(tokens, current_index)
 
     else:
@@ -500,13 +572,50 @@ def parse_conteudoPrint(tokens, current_index):
     
 def parse_defComeco(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'const'):
+        
+        if current_token(tokens, current_index)[2] not in tabela_de_simbolos[pilha_escopos[-1]]:
+            declarar_simbolo(
+                nome = current_token(tokens, current_index)[2],
+                categoria = "const",
+                tipo = None,
+                linha = current_token(tokens, current_index)[0],
+                parametros = None,
+                tipo_retorno = None,
+                funcoes = []
+            )
+
         current_index = parse_defConst(tokens, current_index)
         current_index = parse_defComeco(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'variables'):
+
+        if current_token(tokens, current_index)[2] not in tabela_de_simbolos[pilha_escopos[-1]]:
+            declarar_simbolo(
+                nome = current_token(tokens, current_index)[2],
+                categoria = "variables",
+                tipo = None,
+                linha = current_token(tokens, current_index)[0],
+                parametros = None,
+                tipo_retorno = None,
+                funcoes = []
+            )
+
         current_index = parse_defVar(tokens, current_index)
         current_index = parse_defComeco(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'methods'):
-        current_index = parse_methods(tokens, current_index)
+        nome = current_token(tokens, current_index)[2]
+        linha = current_token(tokens, current_index)[0]
+
+        current_index, funcoes = parse_methods(tokens, current_index)
+        if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
+            declarar_simbolo(
+                nome = nome,
+                categoria = "methods",
+                tipo = None,
+                linha = linha,
+                parametros = None,
+                tipo_retorno = None,
+                funcoes = funcoes
+            )
         current_index = parse_defComeco(tokens, current_index)
     elif current_token(tokens, current_index)[2] in ["print", "if", "for", "read"] or match_token(tokens, current_index, 'IDE'):
         current_index = parse_escopoMain2(tokens, current_index)
@@ -519,10 +628,34 @@ def parse_defComeco(tokens, current_index):
 
 def parse_defComeco2(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'variables'):
+
+        if current_token(tokens, current_index)[2] not in tabela_de_simbolos[pilha_escopos[-1]]:
+            declarar_simbolo(
+                nome = current_token(tokens, current_index)[2],
+                categoria = "variables",
+                tipo = None,
+                linha = current_token(tokens, current_index)[0],
+                parametros = None,
+                tipo_retorno = []
+            )
+
         current_index = parse_defVar(tokens, current_index)
         current_index = parse_defComeco2(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'methods'):
-        current_index = parse_methods(tokens, current_index)
+        nome = current_token(tokens, current_index)[2]
+        linha = current_token(tokens, current_index)[0]
+
+        current_index, funcoes = parse_methods(tokens, current_index)
+        if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
+            declarar_simbolo(
+                nome = nome,
+                categoria = "methods",
+                tipo = None,
+                linha = linha,
+                parametros = None,
+                tipo_retorno = None,
+                funcoes = funcoes
+            )
         current_index = parse_defComeco2(tokens, current_index)
     elif current_token(tokens, current_index)[2] in ["print", "if", "for", "read"] or match_token(tokens, current_index, 'IDE'):
         current_index = parse_escopoMain2(tokens, current_index)
@@ -537,21 +670,24 @@ def parse_methods(tokens, current_index):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '{'):
             current_index = consume_token(tokens, current_index)
-            current_index = parse_listaMetodos(tokens, current_index)
+            current_index, funcoes = parse_listaMetodos(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', '}'):
                 current_index = consume_token(tokens, current_index)
-
-    return current_index
+    return current_index, funcoes
 
 # <listaMetodos>
 def parse_listaMetodos(tokens, current_index):
-    if current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean", "void"]:  # tipo
+    funcoes = []
+    while current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean", "void"]:  # tipo
+        tipo = current_token(tokens, current_index)[2]
+        linha = current_token(tokens, current_index)[0]
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'IDE'):
+            nome = current_token(tokens, current_index)[2]
             current_index = consume_token(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', '('):
                 current_index = consume_token(tokens, current_index)
-                current_index = parse_listaParametros(tokens, current_index)
+                current_index, lista = parse_listaParametros(tokens, current_index)
                 if match_token(tokens, current_index, 'DEL', ')'):
                     current_index = consume_token(tokens, current_index)
                     if match_token(tokens, current_index, 'DEL', '{'):
@@ -559,33 +695,54 @@ def parse_listaMetodos(tokens, current_index):
                         current_index = parse_codigo(tokens, current_index)
                         if match_token(tokens, current_index, 'DEL', '}'):
                             current_index = consume_token(tokens, current_index)
-                            current_index = parse_listaMetodos(tokens, current_index)  # chamada recursiva opcional
-
-    return current_index
+                            metodo = {
+                                nome: {
+                                'categoria': "método",
+                                'tipo': tipo,
+                                'linha' : linha,
+                                'parametros' : lista,
+                                'tipo_retorno' : tipo,
+                                'funcoes': []
+                                }
+                            }
+                            
+                            funcoes.append(metodo)
+        else:
+            break
+    return current_index, funcoes
 
 # <listaParametros>
 def parse_listaParametros(tokens, current_index):
-    if current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean"] or match_token(tokens, current_index, "IDE"):
+    lista = []
+
+    while current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean"] or match_token(tokens, current_index, "IDE"):
+        tipo = current_token(tokens, current_index)[2]
         current_index = consume_token(tokens, current_index)
+
         if match_token(tokens, current_index, 'IDE'):
+            nome = current_token(tokens, current_index)[2]
             current_index = consume_token(tokens, current_index)
+
+            lista.append((tipo, nome))
+
             if match_token(tokens, current_index, 'DEL', ','):
                 current_index = consume_token(tokens, current_index)
-                current_index = parse_listaParametros(tokens, current_index)
-        
-    return current_index
+            else:
+                break  # Sai do loop se não houver vírgula
+        else:
+            raise SyntaxError("Esperado nome do parâmetro após tipo")
+
+    return current_index, lista
 
 def parse_defConst(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'const'):
         current_index = consume_token(tokens, current_index)
-    else:
-        lista_erros.append("erro")
+
     if match_token(tokens, current_index, 'DEL', '{'):
         current_index = consume_token(tokens, current_index)
         current_index = parse_listaConst(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '}'):
             current_index = consume_token(tokens, current_index)
-
     return current_index
 
 def parse_defVar(tokens, current_index):
@@ -779,13 +936,20 @@ def main():
             print(f"Arquivo: {name}")
             current_index = 0
             lista_erros = []
+            inicializar_analise()
             current_index = parse_main(lista_tokens, current_index)
             
             caminho_entrada = os.path.join(pasta_entrada, name)
             # Escreve os erros encontrados em um arquivo TXT
             with open(f"{caminho_entrada[:-4]}-saida.txt", "w", encoding="utf-8") as f:
                 if lista_erros:
-                    f.write("Erro Sintático Encontrado" + "\n")
+                    f.write("Erro Sintático Encontrado\n")
+                    for erro in lista_erros:
+                        f.write(f"{erro}\n")
+                else:
+                    f.write("Análise Sintática concluída com sucesso.\n\n")
+                    f.write("Tabela de Símbolos:\n")
+                    f.write(json.dumps(tabela_de_simbolos, indent=4, ensure_ascii=False))
 
 if __name__ == '__main__':
     main()

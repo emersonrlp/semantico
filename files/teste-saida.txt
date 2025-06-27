@@ -1,0 +1,163 @@
+Análise Sintática concluída com sucesso.
+
+Tabela de Símbolos:
+{
+    "global": {
+        "main": {
+            "categoria": "classe",
+            "tipo": null,
+            "linha": 1,
+            "parametros": null,
+            "tipo_retorno": null,
+            "funcoes": []
+        },
+        "const": {
+            "categoria": "const",
+            "tipo": null,
+            "linha": 3,
+            "parametros": null,
+            "tipo_retorno": null,
+            "funcoes": []
+        },
+        "variables": {
+            "categoria": "variables",
+            "tipo": null,
+            "linha": 6,
+            "parametros": null,
+            "tipo_retorno": null,
+            "funcoes": []
+        },
+        "methods": {
+            "categoria": "methods",
+            "tipo": null,
+            "linha": 45,
+            "parametros": null,
+            "tipo_retorno": null,
+            "funcoes": [
+                {
+                    "metodo2": {
+                        "categoria": "método",
+                        "tipo": "float",
+                        "linha": 46,
+                        "parametros": [
+                            [
+                                "float",
+                                "a"
+                            ],
+                            [
+                                "float",
+                                "b"
+                            ]
+                        ],
+                        "tipo_retorno": "float",
+                        "funcoes": []
+                    }
+                },
+                {
+                    "soma": {
+                        "categoria": "método",
+                        "tipo": "void",
+                        "linha": 57,
+                        "parametros": [
+                            [
+                                "int",
+                                "a"
+                            ],
+                            [
+                                "int",
+                                "b"
+                            ]
+                        ],
+                        "tipo_retorno": "void",
+                        "funcoes": []
+                    }
+                },
+                {
+                    "metodo1": {
+                        "categoria": "método",
+                        "tipo": "int",
+                        "linha": 71,
+                        "parametros": [
+                            [
+                                "int",
+                                "x"
+                            ],
+                            [
+                                "int",
+                                "y"
+                            ]
+                        ],
+                        "tipo_retorno": "int",
+                        "funcoes": []
+                    }
+                }
+            ]
+        }
+    },
+    "Orangotango": {
+        "Orangotango": {
+            "categoria": "classe",
+            "tipo": null,
+            "linha": 16,
+            "parametros": null,
+            "tipo_retorno": null,
+            "funcoes": []
+        },
+        "methods": {
+            "categoria": "methods",
+            "tipo": null,
+            "linha": 17,
+            "parametros": null,
+            "tipo_retorno": null,
+            "funcoes": [
+                {
+                    "soma": {
+                        "categoria": "método",
+                        "tipo": "int",
+                        "linha": 18,
+                        "parametros": [
+                            [
+                                "int",
+                                "a"
+                            ],
+                            [
+                                "int",
+                                "b"
+                            ]
+                        ],
+                        "tipo_retorno": "int",
+                        "funcoes": []
+                    }
+                },
+                {
+                    "aqui": {
+                        "categoria": "método",
+                        "tipo": "void",
+                        "linha": 21,
+                        "parametros": [],
+                        "tipo_retorno": "void",
+                        "funcoes": []
+                    }
+                }
+            ]
+        }
+    },
+    "Toin": {
+        "Toin": {
+            "categoria": "classe",
+            "tipo": null,
+            "linha": 32,
+            "parametros": null,
+            "tipo_retorno": null,
+            "funcoes": []
+        },
+        "variables": {
+            "categoria": "variables",
+            "tipo": null,
+            "linha": 33,
+            "parametros": null,
+            "tipo_retorno": [],
+            "funcoes": []
+        }
+    }
+}
