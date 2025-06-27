@@ -7,31 +7,34 @@ Tabela de Símbolos:
             "categoria": "classe",
             "tipo": null,
             "linha": 1,
-            "parametros": null,
+            "parametros": [],
             "tipo_retorno": null,
-            "funcoes": []
+            "funcoes": [],
+            "identificadores": []
         },
         "const": {
             "categoria": "const",
             "tipo": null,
             "linha": 3,
-            "parametros": null,
+            "parametros": [],
             "tipo_retorno": null,
-            "funcoes": []
+            "funcoes": [],
+            "identificadores": []
         },
         "variables": {
             "categoria": "variables",
             "tipo": null,
             "linha": 6,
-            "parametros": null,
+            "parametros": [],
             "tipo_retorno": null,
-            "funcoes": []
+            "funcoes": [],
+            "identificadores": []
         },
         "methods": {
             "categoria": "methods",
             "tipo": null,
             "linha": 45,
-            "parametros": null,
+            "parametros": [],
             "tipo_retorno": null,
             "funcoes": [
                 {
@@ -50,7 +53,8 @@ Tabela de Símbolos:
                             ]
                         ],
                         "tipo_retorno": "float",
-                        "funcoes": []
+                        "funcoes": [],
+                        "identificadores": []
                     }
                 },
                 {
@@ -69,7 +73,8 @@ Tabela de Símbolos:
                             ]
                         ],
                         "tipo_retorno": "void",
-                        "funcoes": []
+                        "funcoes": [],
+                        "identificadores": []
                     }
                 },
                 {
@@ -88,10 +93,12 @@ Tabela de Símbolos:
                             ]
                         ],
                         "tipo_retorno": "int",
-                        "funcoes": []
+                        "funcoes": [],
+                        "identificadores": []
                     }
                 }
-            ]
+            ],
+            "identificadores": []
         }
     },
     "Orangotango": {
@@ -99,15 +106,16 @@ Tabela de Símbolos:
             "categoria": "classe",
             "tipo": null,
             "linha": 16,
-            "parametros": null,
+            "parametros": [],
             "tipo_retorno": null,
-            "funcoes": []
+            "funcoes": [],
+            "identificadores": []
         },
         "methods": {
             "categoria": "methods",
             "tipo": null,
             "linha": 17,
-            "parametros": null,
+            "parametros": [],
             "tipo_retorno": null,
             "funcoes": [
                 {
@@ -126,7 +134,8 @@ Tabela de Símbolos:
                             ]
                         ],
                         "tipo_retorno": "int",
-                        "funcoes": []
+                        "funcoes": [],
+                        "identificadores": []
                     }
                 },
                 {
@@ -136,10 +145,12 @@ Tabela de Símbolos:
                         "linha": 21,
                         "parametros": [],
                         "tipo_retorno": "void",
-                        "funcoes": []
+                        "funcoes": [],
+                        "identificadores": []
                     }
                 }
-            ]
+            ],
+            "identificadores": []
         }
     },
     "Toin": {
@@ -147,17 +158,19 @@ Tabela de Símbolos:
             "categoria": "classe",
             "tipo": null,
             "linha": 32,
-            "parametros": null,
+            "parametros": [],
             "tipo_retorno": null,
-            "funcoes": []
+            "funcoes": [],
+            "identificadores": []
         },
         "variables": {
             "categoria": "variables",
             "tipo": null,
             "linha": 33,
-            "parametros": null,
-            "tipo_retorno": [],
-            "funcoes": []
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": []
         }
     }
 }

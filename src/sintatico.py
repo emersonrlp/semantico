@@ -18,7 +18,7 @@ def sair_escopo():
     except:
         pass
 
-def declarar_simbolo(nome, categoria, tipo, linha, parametros=None, tipo_retorno=None, funcoes=[]):
+def declarar_simbolo(nome, categoria, tipo, linha, parametros=[], tipo_retorno=None, funcoes=[], identificadores=[]):
     escopo_atual = pilha_escopos[-1]
     tabela = tabela_de_simbolos[escopo_atual]
 
@@ -31,7 +31,8 @@ def declarar_simbolo(nome, categoria, tipo, linha, parametros=None, tipo_retorno
         "linha": linha,
         "parametros": parametros,
         "tipo_retorno": tipo_retorno,
-        "funcoes": funcoes
+        "funcoes": funcoes,
+        "identificadores": identificadores
     }
 
 def inicializar_analise():
@@ -74,9 +75,10 @@ def parse_main(tokens, current_index):
             categoria = "classe",
             tipo = None,
             linha = current_token(tokens, current_index)[0],
-            parametros = None,
+            parametros = [],
             tipo_retorno = None,
-            funcoes = []
+            funcoes = [],
+            identificadores = []
         )
     
     if match_token(tokens, current_index, "DEL", "{"):
@@ -89,9 +91,6 @@ def parse_main(tokens, current_index):
     # 8. Sai do escopo 'main'
     sair_escopo()
     print(tabela_de_simbolos)
-    '''print(tabela_de_simbolos['global'])
-    print(tabela_de_simbolos['Orangotango'])
-    print(tabela_de_simbolos['Toin'])'''
 
     return current_index
 
@@ -109,9 +108,10 @@ def parse_escopoMain(tokens, current_index):
                 categoria = "classe",
                 tipo = None,
                 linha = current_token(tokens, current_index)[0],
-                parametros = None,
+                parametros = [],
                 tipo_retorno = None,
-                funcoes = []
+                funcoes = [],
+                identificadores = []
             )
 
         if match_token(tokens, current_index, "DEL", "{"):
@@ -579,9 +579,10 @@ def parse_defComeco(tokens, current_index):
                 categoria = "const",
                 tipo = None,
                 linha = current_token(tokens, current_index)[0],
-                parametros = None,
+                parametros = [],
                 tipo_retorno = None,
-                funcoes = []
+                funcoes = [],
+                identificadores = []
             )
 
         current_index = parse_defConst(tokens, current_index)
@@ -594,9 +595,10 @@ def parse_defComeco(tokens, current_index):
                 categoria = "variables",
                 tipo = None,
                 linha = current_token(tokens, current_index)[0],
-                parametros = None,
+                parametros = [],
                 tipo_retorno = None,
-                funcoes = []
+                funcoes = [],
+                identificadores = []
             )
 
         current_index = parse_defVar(tokens, current_index)
@@ -612,9 +614,10 @@ def parse_defComeco(tokens, current_index):
                 categoria = "methods",
                 tipo = None,
                 linha = linha,
-                parametros = None,
+                parametros = [],
                 tipo_retorno = None,
-                funcoes = funcoes
+                funcoes = funcoes,
+                identificadores = []
             )
         current_index = parse_defComeco(tokens, current_index)
     elif current_token(tokens, current_index)[2] in ["print", "if", "for", "read"] or match_token(tokens, current_index, 'IDE'):
@@ -635,8 +638,10 @@ def parse_defComeco2(tokens, current_index):
                 categoria = "variables",
                 tipo = None,
                 linha = current_token(tokens, current_index)[0],
-                parametros = None,
-                tipo_retorno = []
+                parametros = [],
+                tipo_retorno = None,
+                funcoes = [],
+                identificadores = []
             )
 
         current_index = parse_defVar(tokens, current_index)
@@ -652,9 +657,10 @@ def parse_defComeco2(tokens, current_index):
                 categoria = "methods",
                 tipo = None,
                 linha = linha,
-                parametros = None,
+                parametros = [],
                 tipo_retorno = None,
-                funcoes = funcoes
+                funcoes = funcoes,
+                identificadores = []
             )
         current_index = parse_defComeco2(tokens, current_index)
     elif current_token(tokens, current_index)[2] in ["print", "if", "for", "read"] or match_token(tokens, current_index, 'IDE'):
@@ -702,7 +708,8 @@ def parse_listaMetodos(tokens, current_index):
                                 'linha' : linha,
                                 'parametros' : lista,
                                 'tipo_retorno' : tipo,
-                                'funcoes': []
+                                'funcoes': [],
+                                'identificadores': []
                                 }
                             }
                             
