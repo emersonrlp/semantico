@@ -1,5 +1,4 @@
 from lexico import processar_arquivos
-from sintatico import main_sintatico
 import os
 import json
 
@@ -9,66 +8,6 @@ global variables
 variables = []
 tabela_de_simbolos = {}
 pilha_escopos = []
-
-def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None):
-    """
-    Verifica se o nome_ident já existe na categoria (variables, const, parametros ou methods) do escopo.
-    Para 'parametros', exige também o nome do método.
-
-    Parâmetros:
-    - escopo: escopo atual (ex: 'global', 'Toin')
-    - categoria: 'variables', 'const', 'parametros' ou 'methods'
-    - nome_ident: nome do identificador (str)
-    - linha: número da linha
-    - nome_metodo: nome do método (obrigatório se categoria == 'parametros')
-
-    Retorna:
-    - True se houver duplicidade
-    - False caso contrário
-    """
-    global tabela_de_simbolos, lista_erros
-
-    if escopo not in tabela_de_simbolos:
-        return False
-
-    if categoria == "parametros":
-        if not nome_metodo:
-            raise ValueError("nome_metodo é obrigatório para verificação de parâmetros.")
-
-        funcoes = tabela_de_simbolos.get(escopo, {}).get('methods', {}).get('funcoes', [])
-        for metodo_dict in funcoes:
-            if nome_metodo in metodo_dict:
-                parametros = metodo_dict[nome_metodo].get('parametros', [])
-                for tipo_param, nome_param in parametros:
-                    if nome_param == nome_ident:
-                        lista_erros.append(
-                            f"Erro: parâmetro '{nome_ident}' duplicado no método '{nome_metodo}' do escopo '{escopo}' (linha {linha})"
-                        )
-                        return True
-        return False
-
-    elif categoria == "methods":
-        funcoes = tabela_de_simbolos.get(escopo, {}).get('methods', {}).get('funcoes', [])
-        for metodo_dict in funcoes:
-            if nome_ident in metodo_dict:
-                lista_erros.append(
-                    f"Erro: método '{nome_ident}' já declarado no escopo '{escopo}' (linha {linha})"
-                )
-                return True
-        return False
-
-    # Verificação para 'variables' ou 'const'
-    categoria_dict = tabela_de_simbolos[escopo].get(categoria, {})
-    identificadores = categoria_dict.get("identificadores", [])
-
-    if any(nome_ident in ident for ident in identificadores):
-        lista_erros.append(
-            f"Erro: identificador '{nome_ident}' duplicado na categoria '{categoria}' do escopo '{escopo}' (linha {linha})"
-        )
-        return True
-
-    return False
-
 
 def entrar_escopo(nome_escopo):
     pilha_escopos.append(nome_escopo)
@@ -251,10 +190,8 @@ def parse_escopoMain2(tokens, current_index):
 # <codigo>
 def parse_codigo(tokens, current_index):
     global variables
-    identificadores = []
     if match_token(tokens, current_index, 'PRE', 'variables'):
-        categoria = 'variables'
-        current_index = parse_defVar(tokens, current_index, categoria)
+        current_index, identificadores = parse_defVar(tokens, current_index)
         variables = identificadores
         return parse_codigo(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'print'):
@@ -637,10 +574,12 @@ def parse_conteudoPrint(tokens, current_index):
     return parse_valor(tokens, current_index)       
     
 def parse_defComeco(tokens, current_index):
+    identificadores = []
     if match_token(tokens, current_index, 'PRE', 'const'):
         nome = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
-        categoria = 'const'
+
+        current_index, identificadores = parse_defConst(tokens, current_index)
         if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
                 nome = nome,
@@ -650,15 +589,18 @@ def parse_defComeco(tokens, current_index):
                 parametros = [],
                 tipo_retorno = None,
                 funcoes = [],
-                identificadores = []
+                identificadores = identificadores
             )
-        current_index = parse_defConst(tokens, current_index, categoria)
+        else:
+            for item in identificadores:
+                tabela_de_simbolos['global']['const']['identificadores'].append(item)
         
         current_index = parse_defComeco(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'variables'):
         nome = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
-        categoria = 'variables'
+
+        current_index, identificadores = parse_defVar(tokens, current_index)
         if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
                 nome = nome,
@@ -668,14 +610,17 @@ def parse_defComeco(tokens, current_index):
                 parametros = [],
                 tipo_retorno = None,
                 funcoes = [],
-                identificadores = []
+                identificadores = identificadores
             )
-        current_index = parse_defVar(tokens, current_index, categoria)
-            
+        else:
+            for item in identificadores:
+                tabela_de_simbolos[pilha_escopos[-1]]['variables']['identificadores'].append(item)
         current_index = parse_defComeco(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'methods'):
         nome = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
+
+        current_index, funcoes = parse_methods(tokens, current_index)
         if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
                 nome = nome,
@@ -684,11 +629,9 @@ def parse_defComeco(tokens, current_index):
                 linha = linha,
                 parametros = [],
                 tipo_retorno = None,
-                funcoes = [],
+                funcoes = funcoes,
                 identificadores = []
             )
-        current_index = parse_methods(tokens, current_index)
-
         current_index = parse_defComeco(tokens, current_index)
     elif current_token(tokens, current_index)[2] in ["print", "if", "for", "read"] or match_token(tokens, current_index, 'IDE'):
         current_index = parse_escopoMain2(tokens, current_index)
@@ -703,7 +646,8 @@ def parse_defComeco2(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'variables'):
         nome = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
-        categoria = 'variables'
+
+        current_index, identificadores = parse_defVar(tokens, current_index)
         if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
                 nome = nome,
@@ -713,14 +657,18 @@ def parse_defComeco2(tokens, current_index):
                 parametros = [],
                 tipo_retorno = None,
                 funcoes = [],
-                identificadores = []
+                identificadores = identificadores
             )
-        current_index = parse_defVar(tokens, current_index, categoria)
+        else:
+            for item in identificadores:
+                tabela_de_simbolos[pilha_escopos[-1]]['variables']['identificadores'].append(item)
             
         current_index = parse_defComeco2(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'methods'):
         nome = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
+
+        current_index, funcoes = parse_methods(tokens, current_index)
         if nome not in tabela_de_simbolos[pilha_escopos[-1]]:
             declarar_simbolo(
                 nome = nome,
@@ -729,11 +677,9 @@ def parse_defComeco2(tokens, current_index):
                 linha = linha,
                 parametros = [],
                 tipo_retorno = None,
-                funcoes = [],
+                funcoes = funcoes,
                 identificadores = []
             )
-        current_index = parse_methods(tokens, current_index)
-        
         current_index = parse_defComeco2(tokens, current_index)
     elif current_token(tokens, current_index)[2] in ["print", "if", "for", "read"] or match_token(tokens, current_index, 'IDE'):
         current_index = parse_escopoMain2(tokens, current_index)
@@ -748,37 +694,25 @@ def parse_methods(tokens, current_index):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '{'):
             current_index = consume_token(tokens, current_index)
-            current_index = parse_listaMetodos(tokens, current_index)
+            current_index, funcoes = parse_listaMetodos(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', '}'):
                 current_index = consume_token(tokens, current_index)
-    return current_index
+    return current_index, funcoes
 
 # <listaMetodos>
 def parse_listaMetodos(tokens, current_index):
     global variables
+    funcoes = []
     while current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean", "void"]:  # tipo
         tipo = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'IDE'):
             nome = current_token(tokens, current_index)[2]
-            if not verificar_duplicidade(pilha_escopos[-1], 'methods', nome, linha):
-                metodo = {
-                    nome: {
-                    'categoria': "método",
-                    'tipo': tipo,
-                    'linha' : linha,
-                    'parametros' : [],
-                    'tipo_retorno' : tipo,
-                    'funcoes': [],
-                    'variables': variables
-                    }
-                }
-            tabela_de_simbolos[pilha_escopos[-1]]['methods']['funcoes'].append(metodo)
             current_index = consume_token(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', '('):
                 current_index = consume_token(tokens, current_index)
-                current_index = parse_listaParametros(tokens, current_index, nome)
+                current_index, lista = parse_listaParametros(tokens, current_index)
                 if match_token(tokens, current_index, 'DEL', ')'):
                     current_index = consume_token(tokens, current_index)
                     if match_token(tokens, current_index, 'DEL', '{'):
@@ -786,28 +720,36 @@ def parse_listaMetodos(tokens, current_index):
                         current_index = parse_codigo(tokens, current_index)
                         if match_token(tokens, current_index, 'DEL', '}'):
                             current_index = consume_token(tokens, current_index)
+                            metodo = {
+                                nome: {
+                                'categoria': "método",
+                                'tipo': tipo,
+                                'linha' : linha,
+                                'parametros' : lista,
+                                'tipo_retorno' : tipo,
+                                'funcoes': [],
+                                'variables': variables
+                                }
+                            }
                             
+                            funcoes.append(metodo)
         else:
             break
-    return current_index
+    return current_index, funcoes
 
 # <listaParametros>
-def parse_listaParametros(tokens, current_index, nome):
+def parse_listaParametros(tokens, current_index):
+    lista = []
 
     while current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean"] or match_token(tokens, current_index, "IDE"):
         tipo = current_token(tokens, current_index)[2]
         current_index = consume_token(tokens, current_index)
 
         if match_token(tokens, current_index, 'IDE'):
-            nome_param = current_token(tokens, current_index)[2]
-            linha = current_token(tokens, current_index)[0]
-            if not verificar_duplicidade(pilha_escopos[-1], 'parametros', nome_param, linha, nome):
-                for metodo_dict in tabela_de_simbolos[pilha_escopos[-1]]['methods']['funcoes']:
-                    if nome in metodo_dict:
-                        metodo_dict[nome]['parametros'].append((tipo, nome_param))
-                        break
-  
+            nome = current_token(tokens, current_index)[2]
             current_index = consume_token(tokens, current_index)
+
+            lista.append((tipo, nome))
 
             if match_token(tokens, current_index, 'DEL', ','):
                 current_index = consume_token(tokens, current_index)
@@ -816,33 +758,34 @@ def parse_listaParametros(tokens, current_index, nome):
         else:
             raise SyntaxError("Esperado nome do parâmetro após tipo")
 
-    return current_index
+    return current_index, lista
 
-def parse_defConst(tokens, current_index, categoria):
+def parse_defConst(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'const'):
         current_index = consume_token(tokens, current_index)
 
     if match_token(tokens, current_index, 'DEL', '{'):
         current_index = consume_token(tokens, current_index)
-        current_index = parse_listaConst(tokens, current_index, categoria)
+        current_index, identificadores = parse_listaConst(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '}'):
             current_index = consume_token(tokens, current_index)
-    return current_index
+    return current_index, identificadores
 
-def parse_defVar(tokens, current_index, categoria):
+def parse_defVar(tokens, current_index):
     if match_token(tokens, current_index, 'PRE', 'variables'):
         current_index = consume_token(tokens, current_index)
     
     if match_token(tokens, current_index, 'DEL', '{'):
         current_index = consume_token(tokens, current_index)
-        current_index = parse_listaConst(tokens, current_index, categoria)
+        current_index, identificadores = parse_listaConst(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '}'):
             current_index = consume_token(tokens, current_index)
         
-    return current_index
+    return current_index, identificadores
 
 # <listaConst>
-def parse_listaConst(tokens, current_index, categoria):
+def parse_listaConst(tokens, current_index):
+    identificadores = []
 
     while True:
 
@@ -854,13 +797,15 @@ def parse_listaConst(tokens, current_index, categoria):
             and match_token(tokens, current_index + 1, "IDE")
             and match_token(tokens, current_index + 2, "DEL", "[")
         ):
-            current_index = parse_declVetor(tokens, current_index, categoria)
+            current_index, vetor = parse_declVetor(tokens, current_index)
+            identificadores.extend(vetor)
             continue
 
         elif current_token(tokens, current_index)[2] in ["int", "float", "string", "boolean"]:
             tipo = current_token(tokens, current_index)[2]
             current_index = consume_token(tokens, current_index)
-            current_index = parse_listaItens(tokens, current_index, tipo, categoria)
+            current_index, novos_ids = parse_listaItens(tokens, current_index, tipo)
+            identificadores.extend(novos_ids)
 
             if match_token(tokens, current_index, 'DEL', ';'):
                 current_index = consume_token(tokens, current_index)
@@ -869,7 +814,8 @@ def parse_listaConst(tokens, current_index, categoria):
 
         elif match_token(tokens, current_index, 'IDE'):
             current_index = consume_token(tokens, current_index)
-            current_index = parse_listaItens(tokens, current_index, tipo, categoria)
+            current_index, novos_ids = parse_listaItens(tokens, current_index, tipo)
+            identificadores.extend(novos_ids)
 
             if match_token(tokens, current_index, 'DEL', ';'):
                 current_index = consume_token(tokens, current_index)
@@ -879,16 +825,15 @@ def parse_listaConst(tokens, current_index, categoria):
         else:
             break
     
-    return current_index
+    return current_index, identificadores
 
-def parse_listaItens(tokens, current_index, tipo, categoria):
+def parse_listaItens(tokens, current_index, tipo):
+    identificadores = []
 
     while match_token(tokens, current_index, 'IDE'):
         nome = current_token(tokens, current_index)[2]
-        linha = current_token(tokens, current_index)[0]
-        if not verificar_duplicidade(pilha_escopos[-1], categoria, nome, linha):
-            tabela_de_simbolos[pilha_escopos[-1]][categoria]['identificadores'].append({nome: tipo})
-        
+        identificadores.append({nome: tipo})
+
         current_index = consume_token(tokens, current_index)
         current_index = parse_possFinal(tokens, current_index)
 
@@ -899,7 +844,7 @@ def parse_listaItens(tokens, current_index, tipo, categoria):
         else:
             break
 
-    return current_index
+    return current_index, identificadores
 
 # <listaItens2>
 def parse_listaItens2(tokens, current_index):
@@ -938,12 +883,12 @@ def parse_valor(tokens, current_index):
     
     return current_index
 
-def parse_declVetor(tokens, current_index, categoria):
+def parse_declVetor(tokens, current_index):
+    vetor = []
     if match_token(tokens, current_index, 'PRE'):  # tipo
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'IDE'):
-            if not verificar_duplicidade(pilha_escopos[-1], categoria, current_token(tokens, current_index)[2], current_token(tokens, current_index)[0]):
-                tabela_de_simbolos[pilha_escopos[-1]][categoria]['identificadores'].append({current_token(tokens, current_index)[2]: 'vetor/matriz'})
+            vetor.append({current_token(tokens, current_index)[2]: 'vetor/matriz'})
             current_index = consume_token(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', '['):
                 current_index = consume_token(tokens, current_index)
@@ -962,7 +907,7 @@ def parse_declVetor(tokens, current_index, categoria):
                     if match_token(tokens, current_index, 'DEL', ';'):
                         current_index = consume_token(tokens, current_index)
                     
-    return current_index
+    return current_index, vetor
 
 # <declVetor2>
 def parse_declVetor2(tokens, current_index):
@@ -1043,7 +988,7 @@ def parse_linhaMatriz(tokens, current_index):
         
     return current_index
 
-def main():
+def main_sintatico():
     global lista_erros
     raiz_projeto = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     pasta_entrada = os.path.join(raiz_projeto, "files")
@@ -1054,7 +999,7 @@ def main():
             print(f"Arquivo: {name}")
             current_index = 0
             lista_erros = []
-            #tabela_de_simbolos = main_sintatico()
+            inicializar_analise()
             current_index = parse_main(lista_tokens, current_index)
             
             caminho_entrada = os.path.join(pasta_entrada, name)
@@ -1065,9 +1010,11 @@ def main():
                     for erro in lista_erros:
                         f.write(f"{erro}\n")
                 else:
-                    f.write("Análise Semântica concluída com sucesso.\n\n")
+                    f.write("Análise Sintática concluída com sucesso.\n\n")
                     f.write("Tabela de Símbolos:\n")
                     f.write(json.dumps(tabela_de_simbolos, indent=4, ensure_ascii=False))
-    
+
+    return tabela_de_simbolos
+
 if __name__ == '__main__':
-    main()
+    main_sintatico()
