@@ -8,6 +8,7 @@ global lista_erros
 tabela_de_simbolos = {}
 pilha_escopos = []
 pilha = []
+tabela_de_simbolos_2 = {}
 
 def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None):
     """
@@ -109,7 +110,7 @@ def existe_identificador(nome_ident, linha, escopo):
     - True se encontrado
     - False se não encontrado (e registra erro)
     """
-
+    
     # 1. Se estiver dentro de um método, verificar variáveis e parâmetros do método atual
     if pilha:
         nome_metodo = pilha[-1]
@@ -140,8 +141,13 @@ def existe_identificador(nome_ident, linha, escopo):
             for ident in tabela_de_simbolos.get("global", {}).get(cat, {}).get("identificadores", []):
                 if nome_ident in ident:
                     return True
+                
+    # 4. verifica se é nome de classe
+    nomes_classes = set(tabela_de_simbolos_2.keys())
+    if nome_ident in nomes_classes:
+        return True
 
-    # 4. Não encontrado
+    # 5. Não encontrado
     lista_erros.append(
         f"Erro: identificador '{nome_ident}' não declarado no escopo '{escopo}' (linha {linha})"
     )
@@ -944,6 +950,9 @@ def parse_listaConst(tokens, current_index, categoria):
             continue
 
         elif match_token(tokens, current_index, 'IDE'):
+            if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], ""):
+                lista_objetos.append(current_token(tokens, current_index + 1))
+                print(lista_objetos)
             current_index = consume_token(tokens, current_index)
             current_index = parse_listaItens(tokens, current_index, tipo, categoria)
 
@@ -1136,6 +1145,8 @@ def parse_linhaMatriz(tokens, current_index):
 
 def main():
     global lista_erros
+    global tabela_de_simbolos_2 
+
     raiz_projeto = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     pasta_entrada = os.path.join(raiz_projeto, "files")
     
@@ -1145,7 +1156,7 @@ def main():
             print(f"Arquivo: {name}")
             current_index = 0
             lista_erros = []
-            #tabela_de_simbolos = main_sintatico()
+            tabela_de_simbolos_2 = main_sintatico()
             current_index = parse_main(lista_tokens, current_index)
             
             caminho_entrada = os.path.join(pasta_entrada, name)
