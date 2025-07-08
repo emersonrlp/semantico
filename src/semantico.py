@@ -4,9 +4,7 @@ import os
 import json
 
 global lista_erros
-global variables
 
-variables = []
 tabela_de_simbolos = {}
 pilha_escopos = []
 pilha = []
@@ -251,12 +249,9 @@ def parse_escopoMain2(tokens, current_index):
 
 # <codigo>
 def parse_codigo(tokens, current_index):
-    global variables
-    identificadores = []
     if match_token(tokens, current_index, 'PRE', 'variables'):
         categoria = 'variables'
         current_index = parse_defVar(tokens, current_index, categoria)
-        variables = identificadores
         return parse_codigo(tokens, current_index)
     elif match_token(tokens, current_index, 'PRE', 'print'):
         current_index = parse_comandoPrint(tokens, current_index)
@@ -756,7 +751,6 @@ def parse_methods(tokens, current_index):
 
 # <listaMetodos>
 def parse_listaMetodos(tokens, current_index):
-    global variables
     while current_token(tokens, current_index)[2] in ["int", "string", "float", "boolean", "void"]:  # tipo
         tipo = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
@@ -773,7 +767,7 @@ def parse_listaMetodos(tokens, current_index):
                     'parametros' : [],
                     'tipo_retorno' : tipo,
                     'funcoes': [],
-                    'variables': variables
+                    'variables': []
                     }
                 }
             tabela_de_simbolos[pilha_escopos[-1]]['methods']['funcoes'].append(metodo)
@@ -788,7 +782,7 @@ def parse_listaMetodos(tokens, current_index):
                         current_index = parse_codigo(tokens, current_index)
                         if match_token(tokens, current_index, 'DEL', '}'):
                             current_index = consume_token(tokens, current_index)
-                pilha.pop()
+                            pilha.pop()
                             
         else:
             break
