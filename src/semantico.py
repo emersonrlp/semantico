@@ -970,8 +970,15 @@ def parse_declVetor(tokens, current_index, categoria):
     if match_token(tokens, current_index, 'PRE'):  # tipo
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'IDE'):
-            if not verificar_duplicidade(pilha_escopos[-1], categoria, current_token(tokens, current_index)[2], current_token(tokens, current_index)[0]):
-                tabela_de_simbolos[pilha_escopos[-1]][categoria]['identificadores'].append({current_token(tokens, current_index)[2]: 'vetor/matriz'})
+            if not pilha:
+                if not verificar_duplicidade(pilha_escopos[-1], categoria, current_token(tokens, current_index)[2], current_token(tokens, current_index)[0]):
+                    tabela_de_simbolos[pilha_escopos[-1]][categoria]['identificadores'].append({current_token(tokens, current_index)[2]: 'vetor/matriz'})
+            else:
+                if not verificar_duplicidade(pilha_escopos[-1], categoria, current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha[-1]):
+                    for metodo_dict in tabela_de_simbolos[pilha_escopos[-1]]['methods']['funcoes']:
+                        if pilha[-1] in metodo_dict:
+                            metodo_dict[pilha[-1]]['variables'].append(('vetor/matriz', current_token(tokens, current_index)[2]))
+                            break
             current_index = consume_token(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', '['):
                 current_index = consume_token(tokens, current_index)
