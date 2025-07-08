@@ -54,7 +54,6 @@ class main {
                 print("Nao_pode_ser_preso");
             }
         }
-        
         void soma(int a, int b) {
             variables {
                 string c = "a";

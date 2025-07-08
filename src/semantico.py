@@ -55,18 +55,39 @@ def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None
                 )
                 return True
         return False
+    # Verificação de variables dentro de métodos (quando pilha está ativa)
+    elif pilha:
+        # Estamos dentro de um método: verificar dentro das 'variables' internas do método
+        if not nome_metodo:
+            raise ValueError("nome_metodo é obrigatório para verificação de variables internas ao método.")
 
-    # Verificação para 'variables' ou 'const'
-    categoria_dict = tabela_de_simbolos[escopo].get(categoria, {})
-    identificadores = categoria_dict.get("identificadores", [])
+        funcoes = tabela_de_simbolos[escopo].get('methods', {}).get('funcoes', [])
+        for metodo_dict in funcoes:
+            if nome_metodo in metodo_dict:
+                variaveis = metodo_dict[nome_metodo].get('variables', [])
+                for tipo_var, nome_var in variaveis:
+                    if nome_var == nome_ident:
+                        lista_erros.append(
+                            f"Erro: variável '{nome_ident}' duplicada dentro do método '{nome_metodo}' no escopo '{escopo}' (linha {linha})"
+                        )
+                        return True
+        return False
 
-    if any(nome_ident in ident for ident in identificadores):
-        lista_erros.append(
-            f"Erro: identificador '{nome_ident}' duplicado na categoria '{categoria}' do escopo '{escopo}' (linha {linha})"
-        )
-        return True
+    # Verificação no nível da classe (const ou variables no escopo atual)
+    else:
+        categoria_dict = tabela_de_simbolos[escopo].get(categoria, {})
+        identificadores = categoria_dict.get("identificadores", [])
 
-    return False
+        for ident in identificadores:
+            if nome_ident in ident:
+                lista_erros.append(
+                    f"Erro: identificador '{nome_ident}' duplicado na categoria '{categoria}' do escopo '{escopo}' (linha {linha})"
+                )
+                return True
+
+        return False
+    
+
 
 
 def entrar_escopo(nome_escopo):
@@ -887,10 +908,11 @@ def parse_listaItens(tokens, current_index, tipo, categoria):
             if not verificar_duplicidade(pilha_escopos[-1], categoria, nome, linha):
                 tabela_de_simbolos[pilha_escopos[-1]][categoria]['identificadores'].append({nome: tipo})
         else:
-            for metodo_dict in tabela_de_simbolos[pilha_escopos[-1]]['methods']['funcoes']:
-                if pilha[-1] in metodo_dict:
-                    metodo_dict[pilha[-1]]['variables'].append((tipo, nome))
-                    break
+            if not verificar_duplicidade(pilha_escopos[-1], categoria, nome, linha, pilha[-1]):
+                for metodo_dict in tabela_de_simbolos[pilha_escopos[-1]]['methods']['funcoes']:
+                    if pilha[-1] in metodo_dict:
+                        metodo_dict[pilha[-1]]['variables'].append((tipo, nome))
+                        break
         current_index = consume_token(tokens, current_index)
         current_index = parse_possFinal(tokens, current_index)
 
