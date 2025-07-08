@@ -91,7 +91,61 @@ def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None
 
         return False
     
+def existe_identificador(nome_ident, linha, escopo):
+    """
+    Verifica se um identificador existe no contexto atual, dado o escopo e a pilha de execução.
 
+    - Procura em variáveis locais do método (se dentro de método)
+    - Parâmetros do método
+    - Variáveis e constantes no escopo atual
+    - Variáveis e constantes no escopo global (se necessário)
+
+    Parâmetros:
+    - nome_ident: nome do identificador a buscar
+    - linha: linha de uso (para mensagem de erro)
+    - escopo: escopo atual (ex: 'global', 'orangotango', etc.)
+
+    Retorna:
+    - True se encontrado
+    - False se não encontrado (e registra erro)
+    """
+
+    # 1. Se estiver dentro de um método, verificar variáveis e parâmetros do método atual
+    if pilha:
+        nome_metodo = pilha[-1]
+        funcoes = tabela_de_simbolos.get(escopo, {}).get("methods", {}).get("funcoes", [])
+        for metodo_dict in funcoes:
+            if nome_metodo in metodo_dict:
+                metodo_info = metodo_dict[nome_metodo]
+
+                # Variáveis locais do método
+                for tipo, nome in metodo_info.get("variables", []):
+                    if nome == nome_ident:
+                        return True
+
+                # Parâmetros do método
+                for tipo, nome in metodo_info.get("parametros", []):
+                    if nome == nome_ident:
+                        return True
+
+    # 2. Procurar em variables e const do escopo atual
+    for cat in ["variables", "const"]:
+        for ident in tabela_de_simbolos.get(escopo, {}).get(cat, {}).get("identificadores", []):
+            if nome_ident in ident:
+                return True
+
+    # 3. Procurar no escopo global (caso não seja ele mesmo)
+    if escopo != "global":
+        for cat in ["variables", "const"]:
+            for ident in tabela_de_simbolos.get("global", {}).get(cat, {}).get("identificadores", []):
+                if nome_ident in ident:
+                    return True
+
+    # 4. Não encontrado
+    lista_erros.append(
+        f"Erro: identificador '{nome_ident}' não declarado no escopo '{escopo}' (linha {linha})"
+    )
+    return False
 
 
 def entrar_escopo(nome_escopo):
@@ -962,8 +1016,10 @@ def parse_valor(tokens, current_index):
             current_index = parse_chamadaAtributo(tokens, current_index)
         
     elif match_token(tokens, current_index, 'NRO') or match_token(tokens, current_index, 'CAC') or match_token(tokens, current_index, 'PRE', 'true') or match_token(tokens, current_index, 'PRE', 'false') or match_token(tokens, current_index, 'IDE'):
+        if match_token(tokens, current_index, 'IDE'):
+            existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
         current_index = consume_token(tokens, current_index)
-    
+        
     return current_index
 
 def parse_declVetor(tokens, current_index, categoria):
