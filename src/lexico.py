@@ -256,7 +256,9 @@ def processar_arquivos():
                 partes = token.split(" ")
                 if len(partes) == 3:
                     linha_numero, tipo_token, valor_token = partes
-                    tokens_formatados.append([int(linha_numero), tipo_token, valor_token])
+                    if valor_token.lower() == 'true' or valor_token.lower() == 'false':
+                        tipo_token = 'PRE'
+                    tokens_formatados.append([int(linha_numero), tipo_token, valor_token.lower()])
 
             # Se não houver erros, salvar os tokens válidos no dicionário
             resultados[arquivo] = tokens_formatados

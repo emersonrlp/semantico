@@ -57,7 +57,7 @@ class main {
         
         void soma(int a, int b) {
             variables {
-                string c = "a";
+                string z = "a";
                 boolean sim = true;
             }
             if (a + b > 10) {
