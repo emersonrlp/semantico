@@ -108,8 +108,7 @@ def existe_identificador(nome_ident, linha, escopo):
     Retorna:
     - True se encontrado
     - False se não encontrado (e registra erro)
-    """
-    
+    """  
     # 1. Se estiver dentro de um método, verificar variáveis e parâmetros do método atual
     if pilha:
         nome_metodo = pilha[-1]
@@ -140,11 +139,17 @@ def existe_identificador(nome_ident, linha, escopo):
             for ident in tabela_de_simbolos.get("global", {}).get(cat, {}).get("identificadores", []):
                 if nome_ident in ident:
                     return True
-                
-    # 4. verifica se é nome de classe
-    nomes_classes = set(tabela_de_simbolos_2.keys())
-    if nome_ident in nomes_classes:
-        return True
+    if escopo == '':            
+        # 4. verifica se é nome de classe
+        nomes_classes = set(tabela_de_simbolos_2.keys())
+        if nome_ident in nomes_classes:
+            return True
+        else:
+            # 5. Não encontrado
+            lista_erros.append(
+                f"Erro: Não existe uma classe '{nome_ident}' para que esse objeto seja criado, (linha {linha})"
+            )
+            return False
 
     # 5. Não encontrado
     lista_erros.append(
@@ -492,6 +497,17 @@ def parse_chamadaAtributo(tokens, current_index):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '.'):
             current_index = consume_token(tokens, current_index)
+            
+            # verifica chamadaAtributo
+            alvo = current_token(tokens, current_index - 2)[2]
+            resultado = None
+            for item in lista_obj:
+                if item[0][2] == alvo:
+                    resultado = item[1]
+            resultado = [resultado, ""]
+            #if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], resultado):
+            #    pass
+            
             if match_token(tokens, current_index, 'IDE'):
                 current_index = consume_token(tokens, current_index)
 
@@ -950,7 +966,7 @@ def parse_listaConst(tokens, current_index, categoria):
 
         elif match_token(tokens, current_index, 'IDE'):
             if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], ""):
-                lista_obj.append(current_token(tokens, current_index + 1))
+                lista_obj.append([current_token(tokens, current_index + 1), current_token(tokens, current_index)[2]])
             current_index = consume_token(tokens, current_index)
             current_index = parse_listaItens(tokens, current_index, tipo, categoria)
 
