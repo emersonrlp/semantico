@@ -75,8 +75,12 @@ def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None
 
     # Verificação no nível da classe (const ou variables no escopo atual)
     else:
-        categoria_dict = tabela_de_simbolos[escopo].get(categoria, {})
-        identificadores = categoria_dict.get("identificadores", [])
+        # Verificação entre 'variables' e 'const' no mesmo escopo (ambos não podem repetir nomes)
+        identificadores_vars = tabela_de_simbolos[escopo].get("variables", {}).get("identificadores", [])
+        identificadores_const = tabela_de_simbolos[escopo].get("const", {}).get("identificadores", [])
+
+        # Junta os dois dicionários de identificadores
+        identificadores = identificadores_vars + identificadores_const
 
         for ident in identificadores:
             if nome_ident in ident:

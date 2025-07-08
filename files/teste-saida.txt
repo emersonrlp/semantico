@@ -1,2 +1,2 @@
 Erro Sintático Encontrado
-Erro: variável 'c' duplicada dentro do método 'soma' no escopo 'global' (linha 60)
+Erro: identificador 'estante' duplicado na categoria 'variables' do escopo 'global' (linha 8)
