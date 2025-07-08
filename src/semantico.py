@@ -9,6 +9,7 @@ global variables
 variables = []
 tabela_de_simbolos = {}
 pilha_escopos = []
+pilha = []
 
 def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None):
     """
@@ -99,7 +100,7 @@ def declarar_simbolo(nome, categoria, tipo, linha, parametros=[], tipo_retorno=N
     }
 
 def inicializar_analise():
-    global tabela_de_simbolos, pilha_escopos
+    global tabela_de_simbolos, pilha_escopos, pilha
     tabela_de_simbolos.clear()
     pilha_escopos.clear()
     pilha_escopos.append("global")
@@ -762,6 +763,7 @@ def parse_listaMetodos(tokens, current_index):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'IDE'):
             nome = current_token(tokens, current_index)[2]
+            pilha.append(nome)
             if not verificar_duplicidade(pilha_escopos[-1], 'methods', nome, linha):
                 metodo = {
                     nome: {
@@ -786,6 +788,7 @@ def parse_listaMetodos(tokens, current_index):
                         current_index = parse_codigo(tokens, current_index)
                         if match_token(tokens, current_index, 'DEL', '}'):
                             current_index = consume_token(tokens, current_index)
+                pilha.pop()
                             
         else:
             break
@@ -886,9 +889,14 @@ def parse_listaItens(tokens, current_index, tipo, categoria):
     while match_token(tokens, current_index, 'IDE'):
         nome = current_token(tokens, current_index)[2]
         linha = current_token(tokens, current_index)[0]
-        if not verificar_duplicidade(pilha_escopos[-1], categoria, nome, linha):
-            tabela_de_simbolos[pilha_escopos[-1]][categoria]['identificadores'].append({nome: tipo})
-        
+        if not pilha:
+            if not verificar_duplicidade(pilha_escopos[-1], categoria, nome, linha):
+                tabela_de_simbolos[pilha_escopos[-1]][categoria]['identificadores'].append({nome: tipo})
+        else:
+            for metodo_dict in tabela_de_simbolos[pilha_escopos[-1]]['methods']['funcoes']:
+                if pilha[-1] in metodo_dict:
+                    metodo_dict[pilha[-1]]['variables'].append((tipo, nome))
+                    break
         current_index = consume_token(tokens, current_index)
         current_index = parse_possFinal(tokens, current_index)
 
