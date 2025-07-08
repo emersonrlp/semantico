@@ -3,12 +3,11 @@ from sintatico import main_sintatico
 import os
 import json
 
-global lista_erros
-
 tabela_de_simbolos = {}
 pilha_escopos = []
 pilha = []
 tabela_de_simbolos_2 = {}
+lista_obj = []
 
 def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None):
     """
@@ -951,8 +950,7 @@ def parse_listaConst(tokens, current_index, categoria):
 
         elif match_token(tokens, current_index, 'IDE'):
             if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], ""):
-                lista_objetos.append(current_token(tokens, current_index + 1))
-                print(lista_objetos)
+                lista_obj.append(current_token(tokens, current_index + 1))
             current_index = consume_token(tokens, current_index)
             current_index = parse_listaItens(tokens, current_index, tipo, categoria)
 
@@ -1145,6 +1143,7 @@ def parse_linhaMatriz(tokens, current_index):
 
 def main():
     global lista_erros
+    global lista_obj
     global tabela_de_simbolos_2 
 
     raiz_projeto = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
