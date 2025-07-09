@@ -330,6 +330,7 @@ def parse_escopoMain2(tokens, current_index):
     elif match_token(tokens, current_index, 'IDE'):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
+            existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
             current_index = consume_token(tokens, current_index)  # id
             current_index = consume_token(tokens, current_index)  # =
             current_index = parse_expressao(tokens, current_index)
@@ -338,6 +339,7 @@ def parse_escopoMain2(tokens, current_index):
                 return parse_escopoMain2(tokens, current_index)
             
         elif lookahead == '[':
+            existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
             if not match_token(tokens, current_index + 4, 'DEL', '['):
                 current_index = parse_atribvetor(tokens, current_index)
             else:
@@ -400,6 +402,7 @@ def parse_codigo(tokens, current_index):
     elif match_token(tokens, current_index, 'IDE'):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
+            existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
             current_index = consume_token(tokens, current_index)  # id
             current_index = consume_token(tokens, current_index)  # =
             current_index = parse_expressao(tokens, current_index)
@@ -408,6 +411,7 @@ def parse_codigo(tokens, current_index):
                 return parse_codigo(tokens, current_index)
             
         elif lookahead == '[':
+            existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
             if not match_token(tokens, current_index + 4, 'DEL', '['):
                 current_index = parse_atribvetor(tokens, current_index)
                 pass
@@ -1101,6 +1105,7 @@ def parse_valor(tokens, current_index):
         if lookahead == '-' and match_token(tokens, current_index +2, "REL", ">"):
             current_index = parse_chamadaMetodo(tokens, current_index)
         elif lookahead == '[':
+            existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
             if not match_token(tokens, current_index + 4, 'DEL', '['):
                 current_index = parse_acessoVetor(tokens, current_index)
             
