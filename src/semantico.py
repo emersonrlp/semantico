@@ -93,69 +93,85 @@ def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None
     
 def existe_identificador(nome_ident, linha, escopo):
     """
-    Verifica se um identificador existe no contexto atual, dado o escopo e a pilha de execução.
+    Verifica se um identificador foi declarado e se está visível no escopo atual.
 
-    - Procura em variáveis locais do método (se dentro de método)
-    - Parâmetros do método
-    - Variáveis e constantes no escopo atual
-    - Variáveis e constantes no escopo global (se necessário)
+    - Se foi declarado e está visível: retorna True
+    - Se foi declarado, mas não está visível: erro de visibilidade
+    - Se não foi declarado: erro de existência
+    """
+    # 1. Verifica se está visível no escopo atual
 
-    Parâmetros:
-    - nome_ident: nome do identificador a buscar
-    - linha: linha de uso (para mensagem de erro)
-    - escopo: escopo atual (ex: 'global', 'orangotango', etc.)
-
-    Retorna:
-    - True se encontrado
-    - False se não encontrado (e registra erro)
-    """  
-    # 1. Se estiver dentro de um método, verificar variáveis e parâmetros do método atual
+    # 1.1. Dentro de método: parâmetros e variáveis locais
     if pilha:
         nome_metodo = pilha[-1]
         funcoes = tabela_de_simbolos.get(escopo, {}).get("methods", {}).get("funcoes", [])
         for metodo_dict in funcoes:
             if nome_metodo in metodo_dict:
                 metodo_info = metodo_dict[nome_metodo]
-
-                # Variáveis locais do método
+                for tipo, nome in metodo_info.get("parametros", []):
+                    if nome == nome_ident:
+                        return True
                 for tipo, nome in metodo_info.get("variables", []):
                     if nome == nome_ident:
                         return True
 
-                # Parâmetros do método
-                for tipo, nome in metodo_info.get("parametros", []):
-                    if nome == nome_ident:
-                        return True
-
-    # 2. Procurar em variables e const do escopo atual
+    # 1.2. Variables e const do escopo atual
     for cat in ["variables", "const"]:
         for ident in tabela_de_simbolos.get(escopo, {}).get(cat, {}).get("identificadores", []):
             if nome_ident in ident:
                 return True
 
-    # 3. Procurar no escopo global (caso não seja ele mesmo)
+    # 1.3. Escopo global (se não for ele mesmo)
     if escopo != "global":
         for cat in ["variables", "const"]:
             for ident in tabela_de_simbolos.get("global", {}).get(cat, {}).get("identificadores", []):
                 if nome_ident in ident:
                     return True
-    if escopo == '':            
-        # 4. verifica se é nome de classe
+
+    # 1.4. Nome de classe (caso escopo == '')
+    if escopo == '':
         nomes_classes = set(tabela_de_simbolos_2.keys())
         if nome_ident in nomes_classes:
             return True
         else:
-            # 5. Não encontrado
             lista_erros.append(
-                f"Erro: Não existe uma classe '{nome_ident}' para que esse objeto seja criado, (linha {linha})"
+                f"Erro: Não existe uma classe '{nome_ident}' para que esse objeto seja criado (linha {linha})"
             )
             return False
 
-    # 5. Não encontrado
+    # 2. Se não encontrado no escopo atual, verificar se existe em qualquer escopo (para erro de visibilidade)
+    for esc in tabela_de_simbolos:
+        for cat in ["variables", "const"]:
+            for ident in tabela_de_simbolos[esc].get(cat, {}).get("identificadores", []):
+                if nome_ident in ident:
+                    lista_erros.append(
+                        f"Erro: identificador '{nome_ident}' não visível no escopo '{escopo}' (linha {linha})"
+                    )
+                    return False
+
+        # Também verifica parâmetros e variáveis de métodos
+        funcoes = tabela_de_simbolos[esc].get("methods", {}).get("funcoes", [])
+        for metodo_dict in funcoes:
+            for _, metodo_info in metodo_dict.items():
+                for tipo, nome in metodo_info.get("parametros", []):
+                    if nome == nome_ident:
+                        lista_erros.append(
+                            f"Erro: identificador '{nome_ident}' não visível no escopo '{escopo}' (linha {linha})"
+                        )
+                        return False
+                for tipo, nome in metodo_info.get("variables", []):
+                    if nome == nome_ident:
+                        lista_erros.append(
+                            f"Erro: identificador '{nome_ident}' não visível no escopo '{escopo}' (linha {linha})"
+                        )
+                        return False
+
+    # 3. Se não encontrado em lugar nenhum
     lista_erros.append(
-        f"Erro: identificador '{nome_ident}' não declarado no escopo '{escopo}' (linha {linha})"
+        f"Erro: identificador '{nome_ident}' não declarado (linha {linha})"
     )
     return False
+
 
 def verifica_existencia_metodo_atributo(nome_ident, linha, escopo): 
     if escopo[1] == "atributo":

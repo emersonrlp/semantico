@@ -12,8 +12,8 @@ Tabela de Símbolos:
             "funcoes": [],
             "identificadores": []
         },
-        "const": {
-            "categoria": "const",
+        "variables": {
+            "categoria": "variables",
             "tipo": null,
             "linha": 3,
             "parametros": [],
@@ -21,155 +21,32 @@ Tabela de Símbolos:
             "funcoes": [],
             "identificadores": [
                 {
-                    "estante": "vetor/matriz"
-                },
+                    "resultado": "float"
+                }
+            ]
+        },
+        "const": {
+            "categoria": "const",
+            "tipo": null,
+            "linha": 7,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": [
                 {
                     "a": "int"
                 },
                 {
-                    "b": "float"
-                },
-                {
-                    "c": "float"
-                },
-                {
-                    "vetor1": "vetor/matriz"
-                },
-                {
-                    "o": "float"
-                },
-                {
-                    "toin": "float"
-                },
-                {
-                    "ob": "float"
+                    "b": "int"
                 }
             ]
-        },
-        "variables": {
-            "categoria": "variables",
-            "tipo": null,
-            "linha": 6,
-            "parametros": [],
-            "tipo_retorno": null,
-            "funcoes": [],
-            "identificadores": [
-                {
-                    "armario": "vetor/matriz"
-                },
-                {
-                    "soma": "int"
-                },
-                {
-                    "d": "string"
-                },
-                {
-                    "vetor": "vetor/matriz"
-                },
-                {
-                    "idade": "int"
-                },
-                {
-                    "i": "int"
-                },
-                {
-                    "h": "int"
-                }
-            ]
-        },
-        "methods": {
-            "categoria": "methods",
-            "tipo": null,
-            "linha": 65,
-            "parametros": [],
-            "tipo_retorno": null,
-            "funcoes": [
-                {
-                    "metodo2": {
-                        "categoria": "método",
-                        "tipo": "float",
-                        "linha": 66,
-                        "parametros": [
-                            [
-                                "float",
-                                "a"
-                            ],
-                            [
-                                "float",
-                                "b"
-                            ]
-                        ],
-                        "tipo_retorno": "float",
-                        "funcoes": [],
-                        "variables": []
-                    }
-                },
-                {
-                    "soma": {
-                        "categoria": "método",
-                        "tipo": "void",
-                        "linha": 76,
-                        "parametros": [
-                            [
-                                "int",
-                                "a"
-                            ],
-                            [
-                                "int",
-                                "b"
-                            ]
-                        ],
-                        "tipo_retorno": "void",
-                        "funcoes": [],
-                        "variables": [
-                            [
-                                "string",
-                                "c"
-                            ],
-                            [
-                                "boolean",
-                                "sim"
-                            ],
-                            [
-                                "vetor/matriz",
-                                "estante"
-                            ],
-                            [
-                                "float",
-                                "d"
-                            ]
-                        ]
-                    }
-                },
-                {
-                    "metodo1": {
-                        "categoria": "método",
-                        "tipo": "int",
-                        "linha": 92,
-                        "parametros": [
-                            [
-                                "int",
-                                "x"
-                            ],
-                            [
-                                "int",
-                                "y"
-                            ]
-                        ],
-                        "tipo_retorno": "int",
-                        "funcoes": [],
-                        "variables": []
-                    }
-                }
-            ],
-            "identificadores": []
         }
     },
-    "orangotango": {
-        "orangotango": {
+    "operacao": {
+        "operacao": {
             "categoria": "classe",
             "tipo": null,
-            "linha": 20,
+            "linha": 11,
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [],
@@ -178,20 +55,16 @@ Tabela de Símbolos:
         "variables": {
             "categoria": "variables",
             "tipo": null,
-            "linha": 21,
+            "linha": 12,
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [],
-            "identificadores": [
-                {
-                    "soma": "int"
-                }
-            ]
+            "identificadores": []
         },
         "methods": {
             "categoria": "methods",
             "tipo": null,
-            "linha": 24,
+            "linha": 15,
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [
@@ -199,7 +72,7 @@ Tabela de Símbolos:
                     "soma": {
                         "categoria": "método",
                         "tipo": "int",
-                        "linha": 25,
+                        "linha": 16,
                         "parametros": [
                             [
                                 "int",
@@ -216,10 +89,10 @@ Tabela de Símbolos:
                     }
                 },
                 {
-                    "aqui": {
+                    "divisao": {
                         "categoria": "método",
                         "tipo": "void",
-                        "linha": 29,
+                        "linha": 20,
                         "parametros": [],
                         "tipo_retorno": "void",
                         "funcoes": [],
@@ -234,44 +107,16 @@ Tabela de Símbolos:
         "toin": {
             "categoria": "classe",
             "tipo": null,
-            "linha": 40,
+            "linha": 27,
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [],
             "identificadores": []
         },
-        "variables": {
-            "categoria": "variables",
-            "tipo": null,
-            "linha": 41,
-            "parametros": [],
-            "tipo_retorno": null,
-            "funcoes": [],
-            "identificadores": [
-                {
-                    "estante": "vetor/matriz"
-                },
-                {
-                    "a": "int"
-                },
-                {
-                    "b": "float"
-                },
-                {
-                    "c": "float"
-                },
-                {
-                    "vetor": "vetor/matriz"
-                },
-                {
-                    "idade": "int"
-                }
-            ]
-        },
         "methods": {
             "categoria": "methods",
             "tipo": null,
-            "linha": 48,
+            "linha": 29,
             "parametros": [],
             "tipo_retorno": null,
             "funcoes": [
@@ -279,29 +124,9 @@ Tabela de Símbolos:
                     "soma": {
                         "categoria": "método",
                         "tipo": "int",
-                        "linha": 49,
-                        "parametros": [
-                            [
-                                "int",
-                                "a"
-                            ],
-                            [
-                                "int",
-                                "b"
-                            ]
-                        ],
-                        "tipo_retorno": "int",
-                        "funcoes": [],
-                        "variables": []
-                    }
-                },
-                {
-                    "teste": {
-                        "categoria": "método",
-                        "tipo": "void",
-                        "linha": 53,
+                        "linha": 30,
                         "parametros": [],
-                        "tipo_retorno": "void",
+                        "tipo_retorno": "int",
                         "funcoes": [],
                         "variables": []
                     }
