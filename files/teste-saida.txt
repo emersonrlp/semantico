@@ -1,2 +1,313 @@
-Erro Sintático Encontrado
-Erro: identificador 'estante' duplicado na categoria 'variables' do escopo 'global' (linha 8)
+Análise Semântica concluída com sucesso.
+
+Tabela de Símbolos:
+{
+    "global": {
+        "main": {
+            "categoria": "classe",
+            "tipo": null,
+            "linha": 1,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": []
+        },
+        "const": {
+            "categoria": "const",
+            "tipo": null,
+            "linha": 3,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": [
+                {
+                    "estante": "vetor/matriz"
+                },
+                {
+                    "a": "int"
+                },
+                {
+                    "b": "float"
+                },
+                {
+                    "c": "float"
+                },
+                {
+                    "vetor1": "vetor/matriz"
+                },
+                {
+                    "o": "float"
+                },
+                {
+                    "toin": "float"
+                },
+                {
+                    "ob": "float"
+                }
+            ]
+        },
+        "variables": {
+            "categoria": "variables",
+            "tipo": null,
+            "linha": 6,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": [
+                {
+                    "armario": "vetor/matriz"
+                },
+                {
+                    "soma": "int"
+                },
+                {
+                    "d": "string"
+                },
+                {
+                    "vetor": "vetor/matriz"
+                },
+                {
+                    "idade": "int"
+                },
+                {
+                    "i": "int"
+                },
+                {
+                    "h": "int"
+                }
+            ]
+        },
+        "methods": {
+            "categoria": "methods",
+            "tipo": null,
+            "linha": 65,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [
+                {
+                    "metodo2": {
+                        "categoria": "método",
+                        "tipo": "float",
+                        "linha": 66,
+                        "parametros": [
+                            [
+                                "float",
+                                "a"
+                            ],
+                            [
+                                "float",
+                                "b"
+                            ]
+                        ],
+                        "tipo_retorno": "float",
+                        "funcoes": [],
+                        "variables": []
+                    }
+                },
+                {
+                    "soma": {
+                        "categoria": "método",
+                        "tipo": "void",
+                        "linha": 76,
+                        "parametros": [
+                            [
+                                "int",
+                                "a"
+                            ],
+                            [
+                                "int",
+                                "b"
+                            ]
+                        ],
+                        "tipo_retorno": "void",
+                        "funcoes": [],
+                        "variables": [
+                            [
+                                "string",
+                                "c"
+                            ],
+                            [
+                                "boolean",
+                                "sim"
+                            ],
+                            [
+                                "vetor/matriz",
+                                "estante"
+                            ],
+                            [
+                                "float",
+                                "d"
+                            ]
+                        ]
+                    }
+                },
+                {
+                    "metodo1": {
+                        "categoria": "método",
+                        "tipo": "int",
+                        "linha": 92,
+                        "parametros": [
+                            [
+                                "int",
+                                "x"
+                            ],
+                            [
+                                "int",
+                                "y"
+                            ]
+                        ],
+                        "tipo_retorno": "int",
+                        "funcoes": [],
+                        "variables": []
+                    }
+                }
+            ],
+            "identificadores": []
+        }
+    },
+    "orangotango": {
+        "orangotango": {
+            "categoria": "classe",
+            "tipo": null,
+            "linha": 20,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": []
+        },
+        "variables": {
+            "categoria": "variables",
+            "tipo": null,
+            "linha": 21,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": [
+                {
+                    "soma": "int"
+                }
+            ]
+        },
+        "methods": {
+            "categoria": "methods",
+            "tipo": null,
+            "linha": 24,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [
+                {
+                    "soma": {
+                        "categoria": "método",
+                        "tipo": "int",
+                        "linha": 25,
+                        "parametros": [
+                            [
+                                "int",
+                                "a"
+                            ],
+                            [
+                                "int",
+                                "b"
+                            ]
+                        ],
+                        "tipo_retorno": "int",
+                        "funcoes": [],
+                        "variables": []
+                    }
+                },
+                {
+                    "aqui": {
+                        "categoria": "método",
+                        "tipo": "void",
+                        "linha": 29,
+                        "parametros": [],
+                        "tipo_retorno": "void",
+                        "funcoes": [],
+                        "variables": []
+                    }
+                }
+            ],
+            "identificadores": []
+        }
+    },
+    "toin": {
+        "toin": {
+            "categoria": "classe",
+            "tipo": null,
+            "linha": 40,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": []
+        },
+        "variables": {
+            "categoria": "variables",
+            "tipo": null,
+            "linha": 41,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [],
+            "identificadores": [
+                {
+                    "estante": "vetor/matriz"
+                },
+                {
+                    "a": "int"
+                },
+                {
+                    "b": "float"
+                },
+                {
+                    "c": "float"
+                },
+                {
+                    "vetor": "vetor/matriz"
+                },
+                {
+                    "idade": "int"
+                }
+            ]
+        },
+        "methods": {
+            "categoria": "methods",
+            "tipo": null,
+            "linha": 48,
+            "parametros": [],
+            "tipo_retorno": null,
+            "funcoes": [
+                {
+                    "soma": {
+                        "categoria": "método",
+                        "tipo": "int",
+                        "linha": 49,
+                        "parametros": [
+                            [
+                                "int",
+                                "a"
+                            ],
+                            [
+                                "int",
+                                "b"
+                            ]
+                        ],
+                        "tipo_retorno": "int",
+                        "funcoes": [],
+                        "variables": []
+                    }
+                },
+                {
+                    "teste": {
+                        "categoria": "método",
+                        "tipo": "void",
+                        "linha": 53,
+                        "parametros": [],
+                        "tipo_retorno": "void",
+                        "funcoes": [],
+                        "variables": []
+                    }
+                }
+            ],
+            "identificadores": []
+        }
+    }
+}

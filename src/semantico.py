@@ -157,6 +157,44 @@ def existe_identificador(nome_ident, linha, escopo):
     )
     return False
 
+def verifica_existencia_metodo_atributo(nome_ident, linha, escopo): 
+    if escopo[1] == "atributo":
+        identificadores = []
+        if escopo[0]:
+            escopo_obj = tabela_de_simbolos_2[escopo[0]]
+            for categoria in ["variables", "const"]:
+                try:
+                    for ident in escopo_obj[categoria]["identificadores"]:
+                        for nome in ident.keys():
+                            identificadores.append(nome)
+                except:
+                    pass
+        if nome_ident in identificadores:
+            return True
+        else:
+            # 5. Não encontrado
+            lista_erros.append(
+                f"Erro: Não existe um atributo '{nome_ident}' no escopo '{escopo[0]}' (linha {linha})"
+            )
+
+    elif escopo[1] == "metodo":
+        nomes_funcoes = []
+        if escopo[0]:
+            for categoria, conteudo in tabela_de_simbolos_2[escopo[0]].items():
+                if "funcoes" in conteudo:
+                    for funcao in conteudo["funcoes"]:
+                        for nome_funcao in funcao:
+                            nomes_funcoes.append(nome_funcao)
+                            
+        if nome_ident in nomes_funcoes:
+            return True
+        else:
+            # 5. Não encontrado
+            lista_erros.append(
+                f"Erro: Não existe uma função '{nome_ident}' no escopo '{escopo[0]}' (linha {linha})"
+            )
+    
+    return False    
 
 def entrar_escopo(nome_escopo):
     pilha_escopos.append(nome_escopo)
@@ -289,7 +327,7 @@ def parse_escopoMain2(tokens, current_index):
     elif match_token(tokens, current_index, 'PRE', 'if'):
         current_index = parse_comandoIf(tokens, current_index)
         return parse_escopoMain2(tokens, current_index)
-    elif match_token(tokens, current_index, 'IDE'):
+    elif match_token(tokens, current_index, 'IDE') or match_token(tokens, current_index, 'PRE', "main"):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
             current_index = consume_token(tokens, current_index)  # id
@@ -359,7 +397,7 @@ def parse_codigo(tokens, current_index):
             current_index = consume_token(tokens, current_index)
         
         return parse_codigo(tokens, current_index)
-    elif match_token(tokens, current_index, 'IDE'):
+    elif match_token(tokens, current_index, 'IDE') or match_token(tokens, current_index, 'PRE', "main"):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
             current_index = consume_token(tokens, current_index)  # id
@@ -414,6 +452,27 @@ def parse_chamadaMetodo(tokens, current_index):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'REL', '>'):
             current_index = consume_token(tokens, current_index)
+            
+            # verifica chamadaMetodo
+            alvo = current_token(tokens, current_index - 3)[2]
+            resultado = None
+            resultado2 = None
+            for item in lista_obj:
+                if item[0][2] == alvo:
+                    resultado = item[1]
+                    resultado2 = item[0][2]
+            resultado = [resultado, "metodo"]
+            if alvo == "main":
+                resultado2 = "main"
+                resultado = ["global", "metodo"]
+            if current_token(tokens, current_index - 3)[2] == resultado2:
+                if verifica_existencia_metodo_atributo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], resultado):
+                    pass
+            else:
+                lista_erros.append(
+                    f"Erro: Não existe um objeto com o nome '{current_token(tokens, current_index - 3)[2]}' (linha {current_token(tokens, current_index - 3)[0]})"
+                )
+            
             if match_token(tokens, current_index, 'IDE'):
                 current_index = consume_token(tokens, current_index)
                 if match_token(tokens, current_index, 'DEL', '('):
@@ -493,20 +552,30 @@ def parse_indicesMatriz(tokens, current_index):
 
 # <chamadaAtributo>
 def parse_chamadaAtributo(tokens, current_index):
-    if match_token(tokens, current_index, 'IDE'):
+    if match_token(tokens, current_index, 'IDE') or match_token(tokens, current_index, 'PRE', "main"):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '.'):
             current_index = consume_token(tokens, current_index)
-            
+
             # verifica chamadaAtributo
             alvo = current_token(tokens, current_index - 2)[2]
             resultado = None
+            resultado2 = None
             for item in lista_obj:
                 if item[0][2] == alvo:
                     resultado = item[1]
-            resultado = [resultado, ""]
-            #if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], resultado):
-            #    pass
+                    resultado2 = item[0][2]
+            resultado = [resultado, "atributo"]
+            if alvo == "main":
+                resultado2 = "main"
+                resultado = ["global", "atributo"]
+            if current_token(tokens, current_index - 2)[2] == resultado2:
+                if verifica_existencia_metodo_atributo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], resultado):
+                    pass
+            else:
+                lista_erros.append(
+                    f"Erro: Não existe um objeto com o nome '{current_token(tokens, current_index - 2)[2]}' (linha {current_token(tokens, current_index - 2)[0]})"
+                )
             
             if match_token(tokens, current_index, 'IDE'):
                 current_index = consume_token(tokens, current_index)

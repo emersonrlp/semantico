@@ -140,7 +140,7 @@ def parse_escopoMain2(tokens, current_index):
     elif match_token(tokens, current_index, 'PRE', 'if'):
         current_index = parse_comandoIf(tokens, current_index)
         return parse_escopoMain2(tokens, current_index)
-    elif match_token(tokens, current_index, 'IDE'):
+    elif match_token(tokens, current_index, 'IDE') or match_token(tokens, current_index, 'PRE', "main"):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
             current_index = consume_token(tokens, current_index)  # id
@@ -211,7 +211,7 @@ def parse_codigo(tokens, current_index):
             current_index = consume_token(tokens, current_index)
         
         return parse_codigo(tokens, current_index)
-    elif match_token(tokens, current_index, 'IDE'):
+    elif match_token(tokens, current_index, 'IDE') or match_token(tokens, current_index, 'PRE', "main"):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
             current_index = consume_token(tokens, current_index)  # id
@@ -345,7 +345,7 @@ def parse_indicesMatriz(tokens, current_index):
 
 # <chamadaAtributo>
 def parse_chamadaAtributo(tokens, current_index):
-    if match_token(tokens, current_index, 'IDE'):
+    if match_token(tokens, current_index, 'IDE') or match_token(tokens, current_index, 'PRE', "main"):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', '.'):
             current_index = consume_token(tokens, current_index)

@@ -1,20 +1,26 @@
 class main {
 
     const {
-        int estante[3][3] = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];
+        int estante[3][3] = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];    
     }
     variables {
         int armario[3][3];
-        int estante[3][3] = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];
+        int soma;
     }
 
     const {
         int a = 10;
         float b= 1.5, c = 2.5;
         int vetor1[3] = [1, 2, 3];
+        Orangotango o;
+        toin toin;
+        Orangotango ob;
     }
     
     class Orangotango {
+        variables {
+            int soma;
+        }
          methods {
             int soma(int a, int b){
                 return a + b;
@@ -25,7 +31,7 @@ class main {
             }
          }
          print(toin.Idade);
-         bla = ob -> soma(1,2);
+         bla = o -> soma(1,2);
          ob -> soma(1,3);
          ob -> soma(True, False);
          ob -> soma("aqui", -1);
@@ -33,16 +39,28 @@ class main {
     
     class Toin{
         variables {
+            int estante[3][3] = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];    
             int a = 10;
             float b= 1.5, c = 2.5;
             int vetor[3] = [1, 2, 3];
+            int idade;
         }
+        methods {
+            int soma(int a, int b){
+                return a + b;
+            }
+            
+            void teste(){
+                return;
+            }
+         }
         
     }
     
     variables {
         string d = "a";
         int vetor[3];
+        int idade, i, h;
     }
     methods {
         float metodo2(float a, float b) {
@@ -59,6 +77,8 @@ class main {
             variables {
                 string c = "a";
                 boolean sim = true;
+                int estante[3][3] = [[9, 8, 7], [6, 5, 4], [3, 2, 1]];    
+                float d = 10;
             }
             if (a + b > 10) {
                 print(a);
@@ -81,12 +101,12 @@ class main {
         }
         
     }
-    if (vetor[0] > 5 || a == 10 && !(!c >= !h) && !main->teste() || toin.Idade >= toin->soma(2, 5)) {
+    if (vetor[0] > 5 || a == 10 && !(!c >= !h) && !main->metodo2() || toin.Idade >= toin->soma(2, 5)) {
         print(vetor[0]);
     } else {
         read(a);
     }
-    
+    main.soma = a;
     toin.Idade = 10;
     a = vetor[0] + 1;
     vetor[30] = vetor[10] * 2--;
@@ -94,9 +114,9 @@ class main {
      toin.Idade = toin.Idade + i;
      soma = toin->soma(toin.Idade, i) + i++;
      teste = toin->teste();
-     print(toin->teste(), main->teste(), toin.Idade);
+     print(toin->teste(), main->metodo2(), toin.Idade);
      bla = ob -> soma(1,2);
-     teste = main->teste();
+     teste = main->metodo2();
     }
     armario[1][1] = 9;
 }

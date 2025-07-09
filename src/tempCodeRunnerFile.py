@@ -1,1 +1,1 @@
-            print(resultado)
+chamadaAtributo
