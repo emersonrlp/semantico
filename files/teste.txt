@@ -5,23 +5,31 @@ class main {
     }
 
     const {
-        int b;
+        int b, a;
+        float c;
+        float d;
+        int u, i, z;
+        operacao op;
     }
     
     class operacao {
         variables{
-            
+                    int u, i, z;
+                    float y;
         }
          methods {
             int soma(int a, int b){
                 print(b);
             }
             
-            void divisao(){
+            void divisao(int u, int i){
+                
                 print(resultado);
+                u = i;
+                return a + c;
             }
          }
-        
+         z = i;
     }
     
     class Toin{
@@ -32,10 +40,12 @@ class main {
                     
                 }
                 print(resultado);
+                resultado = 1 + c;
+                return 1.5;
             }
         }
         print(resultado);
         
     }
-    
+    z = op.u + op->soma(a, b);
 }

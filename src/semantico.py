@@ -8,6 +8,7 @@ pilha_escopos = []
 pilha = []
 tabela_de_simbolos_2 = {}
 lista_obj = []
+tipo = ""
 
 def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None):
     """
@@ -172,6 +173,293 @@ def existe_identificador(nome_ident, linha, escopo):
     )
     return False
 
+def verifica_tipo(identificador, linha, tipo_iden, escopo, categoria):
+    global tipo
+    if categoria == "atributo":
+        identificadores = []
+        print(escopo)
+        if escopo:
+            escopo_obj = tabela_de_simbolos_2[escopo]
+            print("atributo 183", identificador)
+            for categoria in ["variables", "const"]:
+                try:
+                    for ident in escopo_obj[categoria]["identificadores"]:
+                        for nome in ident.keys():
+                            print("186 entrou", nome, ident, identificador)
+                            identificadores.append(nome)
+                            if identificador == nome and ident[nome] == tipo_iden:
+                                return True
+                except:
+                    pass
+        # 5. Não encontrado
+        lista_erros.append(
+            f"Erro: Erro de tipo do atributo '{identificador}' no escopo '{escopo}' (linha {linha})"
+        )
+        return False
+    
+    elif categoria == "metodo":
+        nomes_funcoes = []
+        if escopo:
+            for categoria, conteudo in tabela_de_simbolos_2[escopo].items():
+                if "funcoes" in conteudo:
+                    for funcao in conteudo["funcoes"]:
+                        for nome_funcao in funcao:
+                            nomes_funcoes.append(nome_funcao)
+                            if funcao[nome_funcao]["tipo"] == tipo_iden:
+                                return True
+                            else:
+                                if identificador == nome_funcao:
+                                    # 5. Não encontrado
+                                    lista_erros.append(
+                                        f"Erro: Erro de tipo do metodo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                                    )
+                                    return False
+    elif categoria == 'CAC':
+        return tipo_iden == 'string'
+    elif categoria == 'NRO':
+        if "." in identificador:
+            return tipo_iden == 'float'
+        else:
+            return tipo_iden == 'int'
+    elif categoria == 'PRE':
+        return tipo_iden  == 'true' or tipo_iden  == 'false'
+    elif categoria == 'return' or tipo_iden ==  'return':
+        if pilha:
+            nome_metodo = pilha[-1]
+            funcoes = tabela_de_simbolos_2.get(escopo, {}).get("methods", {}).get("funcoes", [])
+            for metodo_dict in funcoes:
+                if nome_metodo in metodo_dict:
+                    print("AAAAAAAAAA", metodo_dict)
+                    if metodo_dict[nome_metodo]["tipo_retorno"] != 'void':
+                        return True, metodo_dict[nome_metodo]["tipo_retorno"]
+                    else:
+                        lista_erros.append(
+                            f"Erro: Erro de tipo, esperava nada mas recebeu: '{identificador}' no escopo '{escopo}' (linha {linha})"
+                        )
+                        return False, 'return'
+    else:
+        # 1.1. Dentro de método: parâmetros e variáveis locais
+        if pilha:
+            nome_metodo = pilha[-1]
+            funcoes = tabela_de_simbolos.get(escopo, {}).get("methods", {}).get("funcoes", [])
+            for metodo_dict in funcoes:
+                if nome_metodo in metodo_dict:
+                    metodo_info = metodo_dict[nome_metodo]
+                    for tipo, nome in metodo_info.get("variables", []):
+                        if nome == identificador:
+                            if tipo == tipo_iden:
+                                print("aqui194->",tipo, identificador)
+                                return tipo_iden == tipo
+                    for tipo, nome in metodo_info.get("parametros", []):
+                        if nome == identificador:
+                            if tipo == tipo_iden:
+                                print("aqui199->",tipo, identificador)
+                                return tipo_iden == tipo
+
+        # 1.2. Variables e const do escopo atual
+        for cat in ["variables", "const"]:
+            for ident in tabela_de_simbolos.get(escopo, {}).get(cat, {}).get("identificadores", []):
+                if identificador in ident:
+                    print("aqui204->",ident, identificador, tipo)
+                    return ident[identificador] == tipo
+
+        # 1.3. Escopo global (se não for ele mesmo)
+        if escopo != "global":
+            for cat in ["variables", "const"]:
+                for ident in tabela_de_simbolos.get("global", {}).get(cat, {}).get("identificadores", []):
+                    if identificador in ident:
+                        print("aqui212->",ident, identificador)
+                        return ident[identificador] == tipo
+        
+        # 1.4. Nome de classe (caso escopo == '')
+        if escopo == '':
+            nomes_classes = set(tabela_de_simbolos_2.keys())
+            if identificador in nomes_classes:
+                return True
+            else:
+                lista_erros.append(
+                            f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                )
+                return False
+
+        # 2. Se não encontrado no escopo atual, verificar se existe em qualquer escopo (para erro de visibilidade)
+        for esc in tabela_de_simbolos:
+            for cat in ["variables", "const"]:
+                for ident in tabela_de_simbolos[esc].get(cat, {}).get("identificadores", []):
+                    if identificador in ident:
+                        # 5. Não encontrado
+                        lista_erros.append(
+                            f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                        )
+                        return False
+
+            # Também verifica parâmetros e variáveis de métodos
+            funcoes = tabela_de_simbolos[esc].get("methods", {}).get("funcoes", [])
+            for metodo_dict in funcoes:
+                for _, metodo_info in metodo_dict.items():
+                    for tipo, nome in metodo_info.get("parametros", []):
+                        if nome == identificador:
+                            # 5. Não encontrado
+                            lista_erros.append(
+                                f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                            )
+                            return False
+                    for tipo, nome in metodo_info.get("variables", []):
+                        if nome == identificador:
+                            # 5. Não encontrado
+                            lista_erros.append(
+                                f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                            )
+                            return False
+    return False
+
+def pega_tipo(identificador, linha, tipo_iden, escopo, categoria):
+    global tipo
+    if categoria == "atributo":
+        identificadores = []
+        print(escopo)
+        if escopo:
+            escopo_obj = tabela_de_simbolos_2[escopo]
+            for categoria in ["variables", "const"]:
+                try:
+                    for ident in escopo_obj[categoria]["identificadores"]:
+                        for nome in ident.keys():
+                            print("307 entrou", nome, ident, ident[nome])
+                            if tipo_iden == "":
+                                if nome == identificador:
+                                    print(ident[nome])
+                                    return True, ident[nome]
+                            identificadores.append(nome)
+                except:
+                    pass
+        # 5. Não encontrado
+        lista_erros.append(
+            f"Erro: Erro de tipo do atributo '{identificador}' no escopo '{escopo}' (linha {linha})"
+        )
+        return False, None
+    
+    elif categoria == "metodo":
+        nomes_funcoes = []
+        if escopo:
+            for categoria, conteudo in tabela_de_simbolos_2[escopo].items():
+                if "funcoes" in conteudo:
+                    for funcao in conteudo["funcoes"]:
+                        for nome_funcao in funcao:
+                            nomes_funcoes.append(nome_funcao)
+                            if funcao[nome_funcao]["tipo"] == tipo_iden:
+                                return True, tipo_iden
+                            else:
+                                if tipo_iden == "":
+                                    return True, funcao[nome_funcao][identificador]["tipo"]
+                                if identificador == nome_funcao:
+                                    # 5. Não encontrado
+                                    lista_erros.append(
+                                        f"Erro: Erro de tipo do metodo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                                    )
+                                    return False, None
+    elif categoria == 'CAC':
+        return tipo_iden == 'string', None
+    elif categoria == 'NRO':
+        if "." in identificador:
+            return tipo_iden == 'float', None
+        else:
+            return tipo_iden == 'int', None
+    elif categoria == 'PRE':
+        return tipo_iden  == 'true' or tipo_iden  == 'false', None
+    elif categoria == 'return':
+        if pilha:
+            nome_metodo = pilha[-1]
+            funcoes = tabela_de_simbolos_2.get(escopo, {}).get("methods", {}).get("funcoes", [])
+            for metodo_dict in funcoes:
+                if nome_metodo in metodo_dict:
+                    print("AAAAAAAAAA", metodo_dict)
+                    if metodo_dict[nome_metodo]["tipo_retorno"] != 'void':
+                        return True, metodo_dict[nome_metodo]["tipo_retorno"]
+                    else:
+                        return False, 'return'
+    else:
+        # 1.1. Dentro de método: parâmetros e variáveis locais
+        if pilha:
+            nome_metodo = pilha[-1]
+            funcoes = tabela_de_simbolos_2.get(escopo, {}).get("methods", {}).get("funcoes", [])
+            for metodo_dict in funcoes:
+                if nome_metodo in metodo_dict:
+                    metodo_info = metodo_dict[nome_metodo]
+                    for tipo, nome in metodo_info.get("variables", []):
+                        if nome == identificador:
+                            if tipo == tipo_iden:
+                                print("aqui194->",tipo, identificador)
+                                if tipo_iden == "":
+                                    return ident[identificador] != tipo_iden, ident[identificador] 
+                                return tipo_iden == tipo, tipo
+                    for tipo, nome in metodo_info.get("parametros", []):
+                        if nome == identificador:
+                            if tipo == tipo_iden:
+                                print("aqui199->",tipo, identificador)
+                                if tipo_iden == "":
+                                    return ident[identificador] != tipo_iden, ident[identificador] 
+                                return tipo_iden == tipo, tipo
+
+        # 1.2. Variables e const do escopo atual
+        for cat in ["variables", "const"]:
+            for ident in tabela_de_simbolos_2.get(escopo, {}).get(cat, {}).get("identificadores", []):
+                if identificador in ident:
+                    print("aqui204->",ident, identificador, tipo)
+                    if tipo_iden == "":
+                        return ident[identificador] != tipo_iden, ident[identificador] 
+                    return ident[identificador] == tipo, tipo
+
+        # 1.3. Escopo global (se não for ele mesmo)
+        if escopo != "global":
+            for cat in ["variables", "const"]:
+                for ident in tabela_de_simbolos.get("global", {}).get(cat, {}).get("identificadores", []):
+                    if identificador in ident:
+                        print("aqui212->",ident, identificador)
+                        if tipo_iden == "":
+                            return ident[identificador] != tipo_iden, ident[identificador] 
+                        return ident[identificador] == tipo_iden, tipo_iden
+        
+        # 1.4. Nome de classe (caso escopo == '')
+        if escopo == '':
+            nomes_classes = set(tabela_de_simbolos_2.keys())
+            if identificador in nomes_classes:
+                return True, None
+            else:
+                lista_erros.append(
+                            f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                )
+                return False, None
+
+        # 2. Se não encontrado no escopo atual, verificar se existe em qualquer escopo (para erro de visibilidade)
+        for esc in tabela_de_simbolos_2:
+            for cat in ["variables", "const"]:
+                for ident in tabela_de_simbolos_2[esc].get(cat, {}).get("identificadores", []):
+                    if identificador in ident:
+                        # 5. Não encontrado
+                        lista_erros.append(
+                            f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                        )
+                        return False, None
+
+            # Também verifica parâmetros e variáveis de métodos
+            funcoes = tabela_de_simbolos_2[esc].get("methods", {}).get("funcoes", [])
+            for metodo_dict in funcoes:
+                for _, metodo_info in metodo_dict.items():
+                    for tipo, nome in metodo_info.get("parametros", []):
+                        if nome == identificador:
+                            # 5. Não encontrado
+                            lista_erros.append(
+                                f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                            )
+                            return False, None
+                    for tipo, nome in metodo_info.get("variables", []):
+                        if nome == identificador:
+                            # 5. Não encontrado
+                            lista_erros.append(
+                                f"Erro: Erro de tipo '{identificador}' no escopo '{escopo}' (linha {linha})"
+                            )
+                            return False, None
+    return False, None
 
 def verifica_existencia_metodo_atributo(nome_ident, linha, escopo): 
     if escopo[1] == "atributo":
@@ -346,11 +634,16 @@ def parse_escopoMain2(tokens, current_index):
     elif match_token(tokens, current_index, 'IDE'):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
+            global tipo
+            if tipo == '':
+               lixo, tipo = pega_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], "IDE")
+               print("423->",tipo, lixo, current_token(tokens, current_index))
             existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
             current_index = consume_token(tokens, current_index)  # id
             current_index = consume_token(tokens, current_index)  # =
             current_index = parse_expressao(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', ';'):
+                tipo = ''
                 current_index = consume_token(tokens, current_index)
                 return parse_escopoMain2(tokens, current_index)
             
@@ -362,12 +655,16 @@ def parse_escopoMain2(tokens, current_index):
                 current_index = parse_atribMatriz(tokens, current_index)
             return parse_escopoMain2(tokens, current_index)
         elif lookahead == '.':
+            if tipo == '':
+               lixo, tipo = pega_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], "atributo")
+               print("423->",tipo, lixo, current_token(tokens, current_index))
             if match_token(tokens, current_index+2, 'REL', '='):
                 current_index = parse_chamadaAtributo(tokens, current_index)
                 if match_token(tokens, current_index, 'REL', '='):
                     current_index = consume_token(tokens, current_index)
                     current_index = parse_expressao(tokens, current_index)
                     if match_token(tokens, current_index, 'DEL', ';'):
+                        tipo = ''
                         current_index = consume_token(tokens, current_index)
                         return parse_escopoMain2(tokens, current_index)
                     
@@ -394,6 +691,7 @@ def parse_escopoMain2(tokens, current_index):
 
 # <codigo>
 def parse_codigo(tokens, current_index):
+    global tipo
     if match_token(tokens, current_index, 'PRE', 'variables'):
         categoria = 'variables'
         current_index = parse_defVar(tokens, current_index, categoria)
@@ -410,19 +708,27 @@ def parse_codigo(tokens, current_index):
     elif match_token(tokens, current_index, 'PRE', 'return'):
         current_index = consume_token(tokens, current_index)
         if not match_token(tokens, current_index, 'DEL', ';'):
+            if tipo == '':
+                lixo, tipo = pega_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], "return")
+                print("499->",tipo, lixo, current_token(tokens, current_index))
             current_index = parse_expressao(tokens, current_index)
         if match_token(tokens, current_index, 'DEL', ';'):
+            tipo = ''
             current_index = consume_token(tokens, current_index)
         
         return parse_codigo(tokens, current_index)
     elif match_token(tokens, current_index, 'IDE'):
         lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
         if lookahead == '=':
+            if tipo == '':
+                lixo, tipo = pega_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], "IDE")
+                print("499->",tipo, lixo, current_token(tokens, current_index))
             existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
             current_index = consume_token(tokens, current_index)  # id
             current_index = consume_token(tokens, current_index)  # =
             current_index = parse_expressao(tokens, current_index)
             if match_token(tokens, current_index, 'DEL', ';'):
+                tipo = ''
                 current_index = consume_token(tokens, current_index)
                 return parse_codigo(tokens, current_index)
             
@@ -487,7 +793,9 @@ def parse_chamadaMetodo(tokens, current_index):
                 resultado = ["global", "metodo"]
             if current_token(tokens, current_index - 3)[2] == resultado2:
                 if verifica_existencia_metodo_atributo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], resultado):
-                    pass
+                    if tipo != "":
+                        if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, resultado[0], "metodo"):
+                            pass
             else:
                 lista_erros.append(
                     f"Erro: Não existe um objeto com o nome '{current_token(tokens, current_index - 3)[2]}' (linha {current_token(tokens, current_index - 3)[0]})"
@@ -591,7 +899,9 @@ def parse_chamadaAtributo(tokens, current_index):
                 resultado = ["global", "atributo"]
             if current_token(tokens, current_index - 2)[2] == resultado2:
                 if verifica_existencia_metodo_atributo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], resultado):
-                    pass
+                    if tipo != "":
+                        if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, resultado[0], "atributo"):
+                            pass
             else:
                 lista_erros.append(
                     f"Erro: Não existe um objeto com o nome '{current_token(tokens, current_index - 2)[2]}' (linha {current_token(tokens, current_index - 2)[0]})"
@@ -1130,7 +1440,22 @@ def parse_valor(tokens, current_index):
         
     elif match_token(tokens, current_index, 'NRO') or match_token(tokens, current_index, 'CAC') or match_token(tokens, current_index, 'PRE', 'true') or match_token(tokens, current_index, 'PRE', 'false') or match_token(tokens, current_index, 'IDE'):
         if match_token(tokens, current_index, 'IDE'):
-            existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1])
+            if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1]):
+                if tipo != "":
+                    cat = current_token(tokens, current_index)[1]
+                    if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat):
+                        lista_erros.append(
+                            f"Erro: Erro de tipo '{current_token(tokens, current_index)[2]}' no escopo '{pilha_escopos[-1]}' (linha {current_token(tokens, current_index)[0]})"
+                        )
+        else:
+            print("1422")
+            if tipo != "":
+                cat = current_token(tokens, current_index)[1]
+                print('AQUI-> ', current_token(tokens, current_index))
+                if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat):
+                    lista_erros.append(
+                        f"Erro: Erro de tipo '{current_token(tokens, current_index)[2]}' no escopo '{pilha_escopos[-1]}' (linha {current_token(tokens, current_index)[0]})"
+                    )
         current_index = consume_token(tokens, current_index)
         
     return current_index
@@ -1251,6 +1576,7 @@ def main():
     global lista_erros
     global lista_obj
     global tabela_de_simbolos_2 
+    global tipo
 
     raiz_projeto = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     pasta_entrada = os.path.join(raiz_projeto, "files")
