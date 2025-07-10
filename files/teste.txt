@@ -1,10 +1,11 @@
 class main {
 
     variables {
+        float resultado;
     }
 
     const {
-        int a, b;
+        int b;
     }
     
     class operacao {
@@ -13,7 +14,7 @@ class main {
         }
          methods {
             int soma(int a, int b){
-                
+                print(b);
             }
             
             void divisao(){

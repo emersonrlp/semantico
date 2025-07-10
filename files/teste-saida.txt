@@ -34,9 +34,6 @@ Tabela de Símbolos:
             "funcoes": [],
             "identificadores": [
                 {
-                    "a": "int"
-                },
-                {
                     "b": "int"
                 }
             ]
