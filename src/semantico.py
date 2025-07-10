@@ -13,21 +13,6 @@ dentroChamadaMetodo = []
 contador = -1
 
 def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None):
-    """
-    Verifica se o nome_ident já existe na categoria (variables, const, parametros ou methods) do escopo.
-    Para 'parametros', exige também o nome do método.
-
-    Parâmetros:
-    - escopo: escopo atual (ex: 'global', 'Toin')
-    - categoria: 'variables', 'const', 'parametros' ou 'methods'
-    - nome_ident: nome do identificador (str)
-    - linha: número da linha
-    - nome_metodo: nome do método (obrigatório se categoria == 'parametros')
-
-    Retorna:
-    - True se houver duplicidade
-    - False caso contrário
-    """
     global tabela_de_simbolos, lista_erros
 
     if escopo not in tabela_de_simbolos:
@@ -95,13 +80,6 @@ def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None
         return False
     
 def existe_identificador(nome_ident, linha, escopo):
-    """
-    Verifica se um identificador foi declarado e se está visível no escopo atual.
-
-    - Se foi declarado e está visível: retorna True
-    - Se foi declarado, mas não está visível: erro de visibilidade
-    - Se não foi declarado: erro de existência
-    """
     # 1. Verifica se está visível no escopo atual
 
     # 1.1. Dentro de método: parâmetros e variáveis locais
