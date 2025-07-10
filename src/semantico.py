@@ -9,6 +9,8 @@ pilha = []
 tabela_de_simbolos_2 = {}
 lista_obj = []
 tipo = ""
+dentroChamadaMetodo = []
+contador = -1
 
 def verificar_duplicidade(escopo, categoria, nome_ident, linha, nome_metodo=None):
     """
@@ -175,6 +177,8 @@ def existe_identificador(nome_ident, linha, escopo):
 
 def verifica_tipo(identificador, linha, tipo_iden, escopo, categoria):
     global tipo
+    global dentroChamadaMetodo
+    global contador
     if categoria == "atributo":
         identificadores = []
         print(escopo)
@@ -214,6 +218,38 @@ def verifica_tipo(identificador, linha, tipo_iden, escopo, categoria):
                                         f"Erro: Erro de tipo do metodo '{identificador}' no escopo '{escopo}' (linha {linha})"
                                     )
                                     return False
+    elif categoria == "parametros":
+        contador += 1
+        print("219", identificador, linha, tipo_iden, escopo, categoria, dentroChamadaMetodo, lista_obj)
+        nomes_funcoes = []
+        alvo = dentroChamadaMetodo[0]
+        resultado = None
+        resultado2 = None
+        for item in lista_obj:
+            if item[0][2] == alvo:
+                resultado = item[1]
+                resultado2 = item[0][2]
+        resultado = [resultado, "metodo"]
+        if alvo == "main":
+            resultado2 = "main"
+            resultado = ["global", "metodo"]
+        print(resultado, resultado2)
+        nomes_funcoes = []
+        if resultado:
+            for categoria, conteudo in tabela_de_simbolos_2[resultado[0]].items():
+                if "funcoes" in conteudo:
+                    for funcao in conteudo["funcoes"]:
+                        if dentroChamadaMetodo[1] in funcao:
+                            try:
+                                if tipo_iden == funcao[dentroChamadaMetodo[1]]["parametros"][contador][0]:
+                                    return True
+                                else:
+                                    return False
+                            except:
+                                lista_erros.append(
+                                    f"Erro: a função não admite o parametro '{identificador}' no escopo '{escopo}' (linha {linha}), pois excede o numero de parametros declarados no corpo da função"
+                                )
+                                return True
     elif categoria == 'CAC':
         return tipo_iden == 'string'
     elif categoria == 'NRO':
@@ -407,7 +443,7 @@ def pega_tipo(identificador, linha, tipo_iden, escopo, categoria):
                     print("aqui204->",ident, identificador, tipo)
                     if tipo_iden == "":
                         return ident[identificador] != tipo_iden, ident[identificador] 
-                    return ident[identificador] == tipo, tipo
+                    return ident[identificador] == tipo, ident[identificador]
 
         # 1.3. Escopo global (se não for ele mesmo)
         if escopo != "global":
@@ -773,12 +809,15 @@ def parse_codigo(tokens, current_index):
 
 # <chamadaMetodo> ::= <classeMetodo> '->' identificador '(' <args> ')'
 def parse_chamadaMetodo(tokens, current_index):
+    global dentroChamadaMetodo
+    global contador
+    dentroChamadaMetodo = [current_token(tokens, current_index)[2]]
     current_index = parse_classeMetodo(tokens, current_index)
     if match_token(tokens, current_index, 'ART', '-'):
         current_index = consume_token(tokens, current_index)
         if match_token(tokens, current_index, 'REL', '>'):
             current_index = consume_token(tokens, current_index)
-            
+            dentroChamadaMetodo.append(current_token(tokens, current_index)[2])
             # verifica chamadaMetodo
             alvo = current_token(tokens, current_index - 3)[2]
             resultado = None
@@ -807,6 +846,8 @@ def parse_chamadaMetodo(tokens, current_index):
                     current_index = consume_token(tokens, current_index)
                     current_index = parse_args(tokens, current_index)
                     if match_token(tokens, current_index, 'DEL', ')'):
+                        dentroChamadaMetodo = []
+                        contador = -1
                         current_index = consume_token(tokens, current_index)
    
     return current_index
@@ -1424,6 +1465,9 @@ def parse_possFinal(tokens, current_index):
 
 # <valor>
 def parse_valor(tokens, current_index):        
+    global dentroChamadaMetodo
+    global tipo
+    global contador
     lookahead = tokens[current_index+1][2] if current_index+1 < len(tokens) else ''
     if match_token(tokens, current_index, 'PRE', 'main'):
         current_index = parse_chamadaMetodo(tokens, current_index)
@@ -1440,22 +1484,44 @@ def parse_valor(tokens, current_index):
         
     elif match_token(tokens, current_index, 'NRO') or match_token(tokens, current_index, 'CAC') or match_token(tokens, current_index, 'PRE', 'true') or match_token(tokens, current_index, 'PRE', 'false') or match_token(tokens, current_index, 'IDE'):
         if match_token(tokens, current_index, 'IDE'):
-            if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1]):
+            print("1422", dentroChamadaMetodo)
+            if len(dentroChamadaMetodo) == 0: 
+                if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1]):
+                    if tipo != "":
+                        cat = current_token(tokens, current_index)[1]
+                        if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat):
+                            lista_erros.append(
+                                f"Erro: Erro de tipo '{current_token(tokens, current_index)[2]}' no escopo '{pilha_escopos[-1]}' (linha {current_token(tokens, current_index)[0]})"
+                            )
+            else:
+                if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], pilha_escopos[-1]):
+                    if tipo != "":
+                        cat = "parametros"
+                        lixo, tipo = pega_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat)
+                        if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat):
+                            lista_erros.append(
+                                f"Erro: Erro de tipo '{current_token(tokens, current_index)[2]}' no escopo '{pilha_escopos[-1]}' (linha {current_token(tokens, current_index)[0]})"
+                            )
+        else:
+            print("1422", dentroChamadaMetodo)
+            if len(dentroChamadaMetodo) == 0:
                 if tipo != "":
                     cat = current_token(tokens, current_index)[1]
+                    print('AQUI-> ', current_token(tokens, current_index))
                     if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat):
                         lista_erros.append(
                             f"Erro: Erro de tipo '{current_token(tokens, current_index)[2]}' no escopo '{pilha_escopos[-1]}' (linha {current_token(tokens, current_index)[0]})"
                         )
-        else:
-            print("1422")
-            if tipo != "":
-                cat = current_token(tokens, current_index)[1]
-                print('AQUI-> ', current_token(tokens, current_index))
-                if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat):
-                    lista_erros.append(
-                        f"Erro: Erro de tipo '{current_token(tokens, current_index)[2]}' no escopo '{pilha_escopos[-1]}' (linha {current_token(tokens, current_index)[0]})"
-                    )
+            else:
+                contador += 1
+                if tipo != "":
+                    cat = "parametros"
+                    lixo, tipo = pega_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat)
+                    print('AQUI-> ', current_token(tokens, current_index))
+                    if not verifica_tipo(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], tipo, pilha_escopos[-1], cat):
+                        lista_erros.append(
+                            f"Erro: Erro de tipo '{current_token(tokens, current_index)[2]}' no escopo '{pilha_escopos[-1]}' (linha {current_token(tokens, current_index)[0]})"
+                        )
         current_index = consume_token(tokens, current_index)
         
     return current_index
@@ -1577,6 +1643,8 @@ def main():
     global lista_obj
     global tabela_de_simbolos_2 
     global tipo
+    global dentroChamadaMetodo
+    global contador
 
     raiz_projeto = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     pasta_entrada = os.path.join(raiz_projeto, "files")

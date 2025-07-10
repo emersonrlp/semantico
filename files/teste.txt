@@ -5,7 +5,7 @@ class main {
     }
 
     const {
-        int b, a;
+        int a, b;
         float c;
         float d;
         int u, i, z;
