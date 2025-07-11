@@ -998,7 +998,6 @@ def main_sintatico(nome_arquivo):
     
     resultado_lexico = processar_arquivos()  # Passa o nome do arquivo
     for name, lista_tokens in resultado_lexico.items():
-        print(name, nome_arquivo)
         if name == nome_arquivo:
             if lista_tokens:
                 print(f"Arquivo: {name}")
