@@ -6,7 +6,7 @@ class main {
 
     const {
         int a, b;
-        float c;
+        float c = 1.5;
         float d;
         int u, i, z;
         operacao op;

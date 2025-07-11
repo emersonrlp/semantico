@@ -1358,7 +1358,7 @@ def parse_defVar(tokens, current_index, categoria):
 
 # <listaConst>
 def parse_listaConst(tokens, current_index, categoria):
-
+    global tipo
     while True:
 
         if match_token(tokens, current_index, "DEL", "}"):
@@ -1369,6 +1369,7 @@ def parse_listaConst(tokens, current_index, categoria):
             and match_token(tokens, current_index + 1, "IDE")
             and match_token(tokens, current_index + 2, "DEL", "[")
         ):
+            tipo = current_token(tokens, current_index)[2]
             current_index = parse_declVetor(tokens, current_index, categoria)
             continue
 
@@ -1378,6 +1379,7 @@ def parse_listaConst(tokens, current_index, categoria):
             current_index = parse_listaItens(tokens, current_index, tipo, categoria)
 
             if match_token(tokens, current_index, 'DEL', ';'):
+                tipo = ''
                 current_index = consume_token(tokens, current_index)
             
             continue
@@ -1389,6 +1391,7 @@ def parse_listaConst(tokens, current_index, categoria):
             current_index = parse_listaItens(tokens, current_index, tipo, categoria)
 
             if match_token(tokens, current_index, 'DEL', ';'):
+                tipo = ''
                 current_index = consume_token(tokens, current_index)
             
             continue
