@@ -3,5 +3,3 @@ Erro: Erro de tipo, esperava nada mas recebeu: 'a' no escopo 'operacao' (linha 3
 Erro: Erro de tipo, esperava nada mas recebeu: 'c' no escopo 'operacao' (linha 31)
 Erro: Erro de tipo '1' no escopo 'toin' (linha 48)
 Erro: Erro de tipo '1.5' no escopo 'toin' (linha 49)
-Erro: identificador 'toin' não declarado (linha 55)
-Erro: Erro de tipo 'toe' no escopo 'global' (linha 55)

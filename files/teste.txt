@@ -52,6 +52,6 @@ class main {
         print(resultado);
         
     }
-    toin = toe;
+    t = toe;
     z = op.u + op->soma(a, b);
 }

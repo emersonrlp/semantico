@@ -157,7 +157,21 @@ def verifica_tipo(identificador, linha, tipo_iden, escopo, categoria):
     global tipo
     global dentroChamadaMetodo
     global contador
-    if categoria == "atributo":
+    global lista_obj
+    alvo = identificador
+    resultado = None
+    resultado2 = None
+    for item in lista_obj:
+        if item[0][2] == alvo:
+            resultado = item[1]
+            resultado2 = item[0][2]
+    resultado = [resultado, "metodo"]
+    if alvo == "main":
+        resultado2 = "main"
+        resultado = ["global", "metodo"]
+    if resultado2 != None:
+        return resultado[0] == tipo_iden
+    elif categoria == "atributo":
         identificadores = []
         if escopo:
             escopo_obj = tabela_de_simbolos_2[escopo]
@@ -267,7 +281,7 @@ def verifica_tipo(identificador, linha, tipo_iden, escopo, categoria):
             for ident in tabela_de_simbolos.get(escopo, {}).get(cat, {}).get("identificadores", []):
                 if identificador in ident:
                     return ident[identificador] == tipo
-
+                
         # 1.3. Escopo global (se não for ele mesmo)
         if escopo != "global":
             for cat in ["variables", "const"]:
@@ -319,7 +333,21 @@ def verifica_tipo(identificador, linha, tipo_iden, escopo, categoria):
 
 def pega_tipo(identificador, linha, tipo_iden, escopo, categoria):
     global tipo
-    if categoria == "atributo":
+    global lista_obj
+    alvo = identificador
+    resultado = None
+    resultado2 = None
+    for item in lista_obj:
+        if item[0][2] == alvo:
+            resultado = item[1]
+            resultado2 = item[0][2]
+    resultado = [resultado, "metodo"]
+    if alvo == "main":
+        resultado2 = "main"
+        resultado = ["global", "metodo"]
+    if resultado2 != None:
+        return True, resultado[0]
+    elif categoria == "atributo":
         identificadores = []
         if escopo:
             escopo_obj = tabela_de_simbolos_2[escopo]
@@ -1367,6 +1395,7 @@ def parse_listaConst(tokens, current_index, categoria):
             continue
 
         elif match_token(tokens, current_index, 'IDE'):
+            tipo = current_token(tokens, current_index)[2]
             if existe_identificador(current_token(tokens, current_index)[2], current_token(tokens, current_index)[0], ""):
                 lista_obj.append([current_token(tokens, current_index + 1), current_token(tokens, current_index)[2]])
             current_index = consume_token(tokens, current_index)
