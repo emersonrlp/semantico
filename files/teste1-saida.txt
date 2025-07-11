@@ -1,0 +1,2 @@
+Erro Sintático Encontrado
+Erro: identificador 'c' não declarado (linha 5)

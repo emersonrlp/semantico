@@ -1633,6 +1633,7 @@ def main():
     global tipo
     global dentroChamadaMetodo
     global contador
+    global tabela_de_simbolos
 
     raiz_projeto = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     pasta_entrada = os.path.join(raiz_projeto, "files")
@@ -1643,7 +1644,8 @@ def main():
             print(f"Arquivo: {name}")
             current_index = 0
             lista_erros = []
-            tabela_de_simbolos_2 = main_sintatico()
+            tabela_de_simbolos_2 = main_sintatico(name)
+            tabela_de_simbolos = {}
             current_index = parse_main(lista_tokens, current_index)
             
             caminho_entrada = os.path.join(pasta_entrada, name)

@@ -1,0 +1,6 @@
+class main{
+    variables{
+        int a, b;
+    }
+    print(c);
+}

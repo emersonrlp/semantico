@@ -988,33 +988,38 @@ def parse_linhaMatriz(tokens, current_index):
         
     return current_index
 
-def main_sintatico():
+import os
+import json
+
+def main_sintatico(nome_arquivo):
     global lista_erros
     raiz_projeto = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     pasta_entrada = os.path.join(raiz_projeto, "files")
     
-    resultado_lexico = processar_arquivos()
+    resultado_lexico = processar_arquivos()  # Passa o nome do arquivo
     for name, lista_tokens in resultado_lexico.items():
-        if lista_tokens:
-            print(f"Arquivo: {name}")
-            current_index = 0
-            lista_erros = []
-            inicializar_analise()
-            current_index = parse_main(lista_tokens, current_index)
-            
-            caminho_entrada = os.path.join(pasta_entrada, name)
-            # Escreve os erros encontrados em um arquivo TXT
-            with open(f"{caminho_entrada[:-4]}-saida.txt", "w", encoding="utf-8") as f:
-                if lista_erros:
-                    f.write("Erro Sintático Encontrado\n")
-                    for erro in lista_erros:
-                        f.write(f"{erro}\n")
-                else:
-                    f.write("Análise Sintática concluída com sucesso.\n\n")
-                    f.write("Tabela de Símbolos:\n")
-                    f.write(json.dumps(tabela_de_simbolos, indent=4, ensure_ascii=False))
+        print(name, nome_arquivo)
+        if name == nome_arquivo:
+            if lista_tokens:
+                print(f"Arquivo: {name}")
+                current_index = 0
+                lista_erros = []
+                inicializar_analise()
+                current_index = parse_main(lista_tokens, current_index)
+                
+                caminho_entrada = os.path.join(pasta_entrada, name)
+                # Escreve os erros encontrados em um arquivo TXT
+                with open(f"{caminho_entrada[:-4]}-saida.txt", "w", encoding="utf-8") as f:
+                    if lista_erros:
+                        f.write("Erro Sintático Encontrado\n")
+                        for erro in lista_erros:
+                            f.write(f"{erro}\n")
+                    else:
+                        f.write("Análise Sintática concluída com sucesso.\n\n")
+                        f.write("Tabela de Símbolos:\n")
+                        f.write(json.dumps(tabela_de_simbolos, indent=4, ensure_ascii=False))
 
-    return tabela_de_simbolos
-
+                return tabela_de_simbolos
+            return {}
 if __name__ == '__main__':
-    main_sintatico()
+    pass
