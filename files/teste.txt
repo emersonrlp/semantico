@@ -10,6 +10,8 @@ class main {
         float d;
         int u, i, z;
         operacao op;
+        toin t;
+        toin toe;
     }
     
     class operacao {
@@ -39,6 +41,9 @@ class main {
                 variables{
                     
                 }
+                for(i;i<5;i++){
+
+                }
                 print(resultado);
                 resultado = 1 + c;
                 return 1.5;
@@ -47,5 +52,6 @@ class main {
         print(resultado);
         
     }
+    toin = toe;
     z = op.u + op->soma(a, b);
 }
